@@ -1,0 +1,158 @@
+.about {
+  padding: var(--space-xl) 0;
+}
+
+.about-header {
+  text-align: center;
+  max-width: 640px;
+  margin: 0 auto var(--space-2xl);
+  animation: fadeInUp 0.6s ease backwards;
+}
+
+.about-title {
+  font-size: clamp(2rem, 4vw, 3rem);
+  margin-bottom: var(--space-lg);
+}
+
+.about-title em {
+  color: var(--color-accent);
+  font-style: italic;
+}
+
+.about-lead {
+  font-size: 1.125rem;
+  color: var(--color-text-muted);
+  line-height: 1.8;
+}
+
+.about-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-xl);
+  align-items: center;
+  margin-bottom: var(--space-2xl);
+  animation: fadeInUp 0.6s ease 0.15s backwards;
+}
+
+.section-content h2 {
+  font-size: 1.75rem;
+  margin-bottom: var(--space-lg);
+}
+
+.section-content p {
+  color: var(--color-text-muted);
+  line-height: 1.8;
+  margin-bottom: var(--space-md);
+}
+
+.section-content p:last-child {
+  margin-bottom: 0;
+}
+
+.philosophy-card {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: var(--space-lg);
+}
+
+.philosophy-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  border-radius: 8px;
+  transition: background var(--transition-fast);
+}
+
+.philosophy-item:hover {
+  background: var(--color-surface);
+}
+
+.philosophy-num {
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  color: var(--color-accent);
+  font-style: italic;
+}
+
+.philosophy-text {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.about-cta {
+  text-align: center;
+  padding: var(--space-2xl);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  animation: fadeInUp 0.6s ease 0.3s backwards;
+}
+
+.about-cta h2 {
+  font-size: 2rem;
+  margin-bottom: var(--space-sm);
+}
+
+.about-cta p {
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-lg);
+}
+
+.about-cta .btn-primary {
+  display: inline-flex;
+}
+
+.about-cta .btn-arrow {
+  transition: transform var(--transition-fast);
+}
+
+.about-cta .btn-primary:hover .btn-arrow {
+  transform: translateX(4px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .about-section {
+    grid-template-columns: 1fr;
+  }
+
+  .section-visual {
+    order: -1;
+  }
+}
+
+/* Shared button styles from Home */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all var(--transition-smooth);
+}
+
+.btn-primary {
+  background: var(--color-accent);
+  color: var(--color-bg);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px var(--color-accent-glow);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
