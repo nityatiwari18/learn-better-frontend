@@ -1,6 +1,6 @@
 .auth-modal {
   padding: 36px;
-  height: 480px;
+  height: auto;
   display: flex;
   flex-direction: column;
 }
@@ -32,7 +32,7 @@
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 25px;
   flex: 1;
 }
 

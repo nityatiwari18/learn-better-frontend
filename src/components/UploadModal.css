@@ -147,6 +147,48 @@
   box-shadow: 0 0 0 3px var(--color-accent-glow);
 }
 
+/* Textarea Field */
+.content-textarea {
+  width: 100%;
+  min-height: 180px;
+  padding: 16px 20px;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  color: var(--color-text);
+  font-size: 1rem;
+  font-family: inherit;
+  transition: all var(--transition-fast);
+  box-sizing: border-box;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.content-textarea::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+.content-textarea:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-glow);
+}
+
+/* Error Message */
+.upload-error {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #f87171;
+  padding: 14px 18px;
+  border-radius: 12px;
+  font-size: 0.9375rem;
+  text-align: center;
+  width: 100%;
+  max-width: 600px;
+  box-sizing: border-box;
+}
+
 /* Submit Button */
 .submit-btn {
   width: 100%;
