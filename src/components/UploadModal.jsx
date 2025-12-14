@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Modal from './Modal'
 import { contentApi } from '../api/content'
+import ProcessingPopup from './ProcessingPopup'
 import './UploadModal.css'
 
 // Maximum file size: 1 MB
@@ -43,6 +44,8 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [showErrorPopup, setShowErrorPopup] = useState(false)
+  const [showProcessing, setShowProcessing] = useState(false)
+  const [processingContentId, setProcessingContentId] = useState(null)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -64,15 +67,14 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
         // Trigger processing for the uploaded content
         try {
           await contentApi.triggerProcessing(response.content.id)
+          // Show processing popup
+          setProcessingContentId(response.content.id)
+          setShowProcessing(true)
         } catch (processingErr) {
-          // Log but don't fail - processing can be retried later
+          // Log but don't fail - still show processing popup
           console.warn('Failed to trigger processing:', processingErr)
-        }
-
-        // Reset form and close modal
-        handleClose()
-        if (onUploadSuccess) {
-          onUploadSuccess(response.content)
+          setProcessingContentId(response.content.id)
+          setShowProcessing(true)
         }
       }
     } catch (err) {
@@ -82,6 +84,33 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleProcessingComplete = () => {
+    // Reset form
+    setUrl('')
+    setFile(null)
+    setText('')
+    setActiveTab('url')
+    setShowProcessing(false)
+    setProcessingContentId(null)
+    
+    // Notify parent and close
+    if (onUploadSuccess) {
+      onUploadSuccess()
+    }
+    onClose()
+  }
+
+  const handleProcessingClose = () => {
+    setShowProcessing(false)
+    setProcessingContentId(null)
+    // Reset form
+    setUrl('')
+    setFile(null)
+    setText('')
+    setActiveTab('url')
+    onClose()
   }
 
   const handleFileChange = (e) => {
@@ -124,6 +153,8 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
     setActiveTab('url')
     setError('')
     setShowErrorPopup(false)
+    setShowProcessing(false)
+    setProcessingContentId(null)
     onClose()
   }
 
@@ -163,6 +194,17 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
     (activeTab === 'pdf' && file) ||
     (activeTab === 'text' && text.trim())
   )
+
+  // Show processing popup if processing
+  if (showProcessing && processingContentId) {
+    return (
+      <ProcessingPopup
+        contentId={processingContentId}
+        onClose={handleProcessingClose}
+        onComplete={handleProcessingComplete}
+      />
+    )
+  }
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose} fullWidth>
