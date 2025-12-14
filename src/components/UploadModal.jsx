@@ -6,6 +6,22 @@ import './UploadModal.css'
 // Maximum file size: 1 MB
 const MAX_FILE_SIZE = 1 * 1024 * 1024
 
+// Error popup component
+function ErrorPopup({ message, onClose }) {
+  return (
+    <div className="error-popup-overlay">
+      <div className="error-popup">
+        <div className="error-popup-icon">!</div>
+        <h3 className="error-popup-title">Upload Failed</h3>
+        <p className="error-popup-message">{message}</p>
+        <button className="error-popup-btn" onClick={onClose}>
+          Try Again
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // Reusable content frame component
 function ContentFrame({ icon, title, description, children }) {
   return (
@@ -26,10 +42,12 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
   const [dragActive, setDragActive] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [showErrorPopup, setShowErrorPopup] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    setShowErrorPopup(false)
     setIsLoading(true)
 
     try {
@@ -42,7 +60,15 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
         response = await contentApi.uploadText(text.trim())
       }
 
-      if (response) {
+      if (response && response.content) {
+        // Trigger processing for the uploaded content
+        try {
+          await contentApi.triggerProcessing(response.content.id)
+        } catch (processingErr) {
+          // Log but don't fail - processing can be retried later
+          console.warn('Failed to trigger processing:', processingErr)
+        }
+
         // Reset form and close modal
         handleClose()
         if (onUploadSuccess) {
@@ -50,8 +76,9 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
         }
       }
     } catch (err) {
-      const errorMessage = err.response?.data?.message || err.response?.data?.error || 'Upload failed. Please try again.'
-      setError(errorMessage)
+      // Show error popup for upload failures
+      setError('Sorry, could not upload content')
+      setShowErrorPopup(true)
     } finally {
       setIsLoading(false)
     }
@@ -96,7 +123,13 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
     setText('')
     setActiveTab('url')
     setError('')
+    setShowErrorPopup(false)
     onClose()
+  }
+
+  const handleErrorPopupClose = () => {
+    setShowErrorPopup(false)
+    setError('')
   }
 
   const tabs = [
@@ -134,6 +167,10 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
   return (
     <Modal isOpen={isOpen} onClose={handleClose} fullWidth>
       <div className="upload-modal">
+        {showErrorPopup && (
+          <ErrorPopup message={error} onClose={handleErrorPopupClose} />
+        )}
+
         <div className="upload-header">
           <h2 className="upload-title">Add Your First Article</h2>
           <p className="upload-subtitle">Choose how you want to add content</p>
@@ -151,12 +188,6 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
             </button>
           ))}
         </div>
-
-        {error && (
-          <div className="upload-error">
-            {error}
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="upload-content">
           <ContentFrame {...contentConfig[activeTab]}>

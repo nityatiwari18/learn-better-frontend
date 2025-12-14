@@ -126,6 +126,26 @@ export const contentApi = {
     const response = await apiClient.get(ENDPOINTS.CONTENT.STORAGE_USAGE)
     return response.data
   },
+
+  /**
+   * Trigger content processing (summary and key concepts generation)
+   * @param {number} contentId - Content ID to process
+   * @returns {Promise<Object>} Processing trigger response
+   */
+  async triggerProcessing(contentId) {
+    const response = await apiClient.post(ENDPOINTS.CONTENT.PROCESS(contentId))
+    return response.data
+  },
+
+  /**
+   * Get content processing status
+   * @param {number} contentId - Content ID to check
+   * @returns {Promise<Object>} Processing status with summary and key concepts if completed
+   */
+  async getProcessingStatus(contentId) {
+    const response = await apiClient.get(ENDPOINTS.CONTENT.PROCESSING_STATUS(contentId))
+    return response.data
+  },
 }
 
 export default contentApi

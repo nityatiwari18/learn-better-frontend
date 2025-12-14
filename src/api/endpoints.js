@@ -26,6 +26,8 @@ export const ENDPOINTS = {
     BY_ID: (id) => `/v1/content/${id}`,
     UPLOAD: '/v1/content',
     STORAGE_USAGE: '/v1/content/storage/usage',
+    PROCESS: (id) => `/v1/content/${id}/process`,
+    PROCESSING_STATUS: (id) => `/v1/content/${id}/processing-status`,
   },
 }
 
