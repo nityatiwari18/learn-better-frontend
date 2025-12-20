@@ -66,15 +66,24 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
       if (response && response.content) {
         // Trigger processing for the uploaded content
         try {
+          if (!response.content.id) {
+            throw new Error('Content ID missing from response')
+          }
           await contentApi.triggerProcessing(response.content.id)
           // Show processing popup
           setProcessingContentId(response.content.id)
           setShowProcessing(true)
         } catch (processingErr) {
-          // Log but don't fail - still show processing popup
+          // Log failure
           console.warn('Failed to trigger processing:', processingErr)
-          setProcessingContentId(response.content.id)
-          setShowProcessing(true)
+          // Still try to show processing popup if ID exists, otherwise error
+          if (response.content.id) {
+            setProcessingContentId(response.content.id)
+            setShowProcessing(true)
+          } else {
+            setError('Upload successful but failed to start processing')
+            setShowErrorPopup(true)
+          }
         }
       }
     } catch (err) {
@@ -94,7 +103,7 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
     setActiveTab('url')
     setShowProcessing(false)
     setProcessingContentId(null)
-    
+
     // Notify parent and close
     if (onUploadSuccess) {
       onUploadSuccess()
@@ -178,7 +187,7 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
     pdf: {
       icon: '📄',
       title: file ? file.name : 'Upload PDF File',
-      description: file 
+      description: file
         ? `${(file.size / 1024 / 1024).toFixed(2)} MB`
         : 'Drag and drop your PDF here or click to browse (max 1 MB)'
     },
@@ -190,7 +199,7 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
   }
 
   const canSubmit = !isLoading && (
-    (activeTab === 'url' && url.trim()) || 
+    (activeTab === 'url' && url.trim()) ||
     (activeTab === 'pdf' && file) ||
     (activeTab === 'text' && text.trim())
   )
