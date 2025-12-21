@@ -130,10 +130,18 @@ export const contentApi = {
   /**
    * Trigger content processing (summary and key concepts generation)
    * @param {number} contentId - Content ID to process
+   * @param {object} [config] - Optional processing configuration
    * @returns {Promise<Object>} Processing trigger response
    */
-  async triggerProcessing(contentId) {
-    const response = await apiClient.post(ENDPOINTS.CONTENT.PROCESS(contentId))
+  async triggerProcessing(contentId, config = null) {
+    const payload = config ? {
+      model: config.model,
+      api_key: config.apiKey,
+      summary_prompt: config.summaryPrompt,
+      key_concepts_prompt: config.keyConceptsPrompt
+    } : {}
+    
+    const response = await apiClient.post(ENDPOINTS.CONTENT.PROCESS(contentId), payload)
     return response.data
   },
 

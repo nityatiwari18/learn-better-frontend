@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import './Modal.css'
 
-function Modal({ isOpen, onClose, children, fullWidth = false }) {
+function Modal({ isOpen, onClose, children, fullWidth = false, customClassName = '' }) {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden'
@@ -31,7 +31,7 @@ function Modal({ isOpen, onClose, children, fullWidth = false }) {
 
   return createPortal(
     <div className="modal-backdrop" onClick={onClose}>
-      <div className={`modal-content ${fullWidth ? 'modal-full-width' : ''}`} onClick={(e) => e.stopPropagation()}>
+      <div className={`modal-content ${fullWidth ? 'modal-full-width' : ''} ${customClassName}`} onClick={(e) => e.stopPropagation()}>
         <button className="modal-close" onClick={onClose} aria-label="Close modal">
           ×
         </button>

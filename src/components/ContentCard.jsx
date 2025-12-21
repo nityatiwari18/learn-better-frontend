@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { contentApi } from '../api/content'
+import { storage } from '../utils/storage'
 import './ContentCard.css'
 
 // Processing status constants
@@ -117,7 +118,9 @@ function ContentCard({ content, onDelete }) {
   const handleRetryProcessing = async (e) => {
     e.stopPropagation()
     try {
-      await contentApi.triggerProcessing(content.id)
+      // Load saved config from localStorage
+      const savedConfig = storage.getProcessingConfig()
+      await contentApi.triggerProcessing(content.id, savedConfig)
       setProcessingStatus(PROCESSING_STATUS.PROCESSING)
       startPolling()
     } catch (err) {
@@ -224,4 +227,5 @@ function ContentCard({ content, onDelete }) {
 }
 
 export default ContentCard
+
 

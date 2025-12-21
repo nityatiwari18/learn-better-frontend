@@ -1,0 +1,232 @@
+/* Override Modal's max-width constraint */
+.modal-content.processing-config-modal {
+  max-width: 1200px !important;
+  width: 100%;
+}
+
+@media (min-width: 1400px) {
+  .modal-content.processing-config-modal {
+    max-width: 1400px !important;
+  }
+}
+
+.processing-config-modal-content {
+  padding: 0;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+  overflow-x: hidden;
+}
+
+.processing-config-header {
+  text-align: center;
+  padding: 36px 36px 18px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.processing-config-header::before {
+  content: '⚙';
+  display: block;
+  font-size: 1.65rem;
+  color: var(--color-accent);
+  margin-bottom: 9px;
+}
+
+.processing-config-header h2 {
+  font-size: 1.65rem;
+  margin: 0;
+  color: var(--color-accent);
+  font-style: italic;
+}
+
+.processing-config-form {
+  padding: 24px 36px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.processing-config-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 25px;
+}
+
+.processing-config-form .form-group label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.processing-config-form .form-group input[type="text"],
+.processing-config-form .form-group input[type="password"] {
+  padding: 11px 13px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  transition: all var(--transition-fast);
+  width: 100%;
+}
+
+.processing-config-form .form-group input[type="text"]::placeholder,
+.processing-config-form .form-group input[type="password"]::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+.processing-config-form .form-group input[type="text"]:hover,
+.processing-config-form .form-group input[type="password"]:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.processing-config-form .form-group input[type="text"]:focus,
+.processing-config-form .form-group input[type="password"]:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-glow);
+}
+
+.processing-config-form .form-group textarea {
+  padding: 11px 13px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  color: var(--color-text);
+  font-family: 'JetBrains Mono', 'Monaco', 'Menlo', monospace;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  resize: vertical;
+  transition: all var(--transition-fast);
+  min-height: 100px;
+  width: 100%;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  overflow-x: hidden;
+}
+
+.processing-config-form .form-group textarea::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+.processing-config-form .form-group textarea:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.processing-config-form .form-group textarea:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-glow);
+}
+
+.processing-config-form .form-hint {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  opacity: 0.8;
+  margin-top: 2px;
+}
+
+.processing-config-form .form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 36px;
+  border-top: 1px solid var(--color-border);
+  gap: 12px;
+  margin-top: auto;
+  margin-left: -36px;
+  margin-right: -36px;
+  margin-bottom: -24px;
+}
+
+.processing-config-form .form-actions-right {
+  display: flex;
+  gap: 12px;
+}
+
+.processing-config-form .btn-primary,
+.processing-config-form .btn-secondary,
+.processing-config-form .btn-cancel {
+  padding: 11px 18px;
+  border-radius: 6px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: none;
+}
+
+.processing-config-form .btn-primary {
+  background: var(--color-accent);
+  color: var(--color-bg);
+}
+
+.processing-config-form .btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px var(--color-accent-glow);
+}
+
+.processing-config-form .btn-primary:active {
+  transform: translateY(0);
+}
+
+.processing-config-form .btn-secondary {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.processing-config-form .btn-secondary:hover {
+  background: var(--color-bg-elevated);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.processing-config-form .btn-cancel {
+  background: transparent;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
+
+.processing-config-form .btn-cancel:hover {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+@media (max-width: 768px) {
+  .processing-config-modal-content {
+    width: 100%;
+  }
+
+  .processing-config-header,
+  .processing-config-form {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .processing-config-form .form-actions {
+    flex-direction: column;
+    gap: 12px;
+    padding-left: 24px;
+    padding-right: 24px;
+    margin-left: -24px;
+    margin-right: -24px;
+  }
+
+  .processing-config-form .form-actions-right {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .processing-config-form .btn-primary,
+  .processing-config-form .btn-secondary,
+  .processing-config-form .btn-cancel {
+    width: 100%;
+  }
+}

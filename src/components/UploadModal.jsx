@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Modal from './Modal'
 import { contentApi } from '../api/content'
 import ProcessingPopup from './ProcessingPopup'
+import ProcessingConfigModal from './ProcessingConfigModal'
 import './UploadModal.css'
 
 // Maximum file size: 1 MB
@@ -46,45 +47,85 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
   const [showErrorPopup, setShowErrorPopup] = useState(false)
   const [showProcessing, setShowProcessing] = useState(false)
   const [processingContentId, setProcessingContentId] = useState(null)
+  const [showConfigModal, setShowConfigModal] = useState(false)
+  const [processingConfig, setProcessingConfig] = useState(null)
+  const [pendingUpload, setPendingUpload] = useState(null)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     setShowErrorPopup(false)
+
+    // Validate input before showing config modal
+    let hasValidInput = false
+    if (activeTab === 'url' && url.trim()) {
+      hasValidInput = true
+    } else if (activeTab === 'pdf' && file) {
+      hasValidInput = true
+    } else if (activeTab === 'text' && text.trim()) {
+      hasValidInput = true
+    }
+
+    if (!hasValidInput) {
+      setError('Please provide content to upload')
+      setShowErrorPopup(true)
+      return
+    }
+
+    // Store what we're about to upload
+    setPendingUpload({ activeTab, url, file, text })
+    
+    // Show config modal
+    setShowConfigModal(true)
+  }
+
+  const handleConfigSubmit = async (config) => {
+    setProcessingConfig(config)
+    setShowConfigModal(false)
     setIsLoading(true)
 
     try {
       let response
-      if (activeTab === 'url' && url.trim()) {
-        response = await contentApi.uploadWeblink(url.trim())
-      } else if (activeTab === 'pdf' && file) {
-        response = await contentApi.uploadFile(file, 'document')
-      } else if (activeTab === 'text' && text.trim()) {
-        response = await contentApi.uploadText(text.trim())
+      if (pendingUpload.activeTab === 'url' && pendingUpload.url.trim()) {
+        response = await contentApi.uploadWeblink(pendingUpload.url.trim())
+      } else if (pendingUpload.activeTab === 'pdf' && pendingUpload.file) {
+        response = await contentApi.uploadFile(pendingUpload.file, 'document')
+      } else if (pendingUpload.activeTab === 'text' && pendingUpload.text.trim()) {
+        response = await contentApi.uploadText(pendingUpload.text.trim())
       }
 
+      console.log('Upload response received:', response)
+
       if (response && response.content) {
-        // Trigger processing for the uploaded content
+        console.log('Content exists, ID:', response.content.id)
+        // Trigger processing with config for the uploaded content
         try {
           if (!response.content.id) {
+            console.error('Content ID is missing or falsy!')
             throw new Error('Content ID missing from response')
           }
-          await contentApi.triggerProcessing(response.content.id)
+          console.log('Triggering processing for content ID:', response.content.id)
+          await contentApi.triggerProcessing(response.content.id, config)
+          console.log('Processing triggered successfully, showing popup')
           // Show processing popup
           setProcessingContentId(response.content.id)
           setShowProcessing(true)
         } catch (processingErr) {
           // Log failure
-          console.warn('Failed to trigger processing:', processingErr)
+          console.error('Failed to trigger processing:', processingErr)
           // Still try to show processing popup if ID exists, otherwise error
           if (response.content.id) {
+            console.log('Showing popup despite error')
             setProcessingContentId(response.content.id)
             setShowProcessing(true)
           } else {
+            console.error('No ID available, showing error popup')
             setError('Upload successful but failed to start processing')
             setShowErrorPopup(true)
           }
         }
+      } else {
+        console.error('Response structure invalid:', { response, hasContent: !!response?.content })
       }
     } catch (err) {
       // Show error popup for upload failures
@@ -92,6 +133,7 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
       setShowErrorPopup(true)
     } finally {
       setIsLoading(false)
+      setPendingUpload(null)
     }
   }
 
@@ -294,6 +336,16 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
           </button>
         </form>
       </div>
+
+      {/* Processing Config Modal */}
+      <ProcessingConfigModal
+        isOpen={showConfigModal}
+        onClose={() => {
+          setShowConfigModal(false)
+          setPendingUpload(null)
+        }}
+        onSubmit={handleConfigSubmit}
+      />
     </Modal>
   )
 }

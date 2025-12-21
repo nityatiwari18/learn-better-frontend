@@ -1,5 +1,6 @@
 const TOKEN_KEY = 'learn_better_token'
 const USER_KEY = 'learn_better_user'
+const PROCESSING_CONFIG_KEY = 'learn_better_processing_config'
 
 /**
  * Token storage utilities using localStorage for persistence
@@ -66,6 +67,30 @@ export const storage = {
    */
   isAuthenticated() {
     return !!localStorage.getItem(TOKEN_KEY)
+  },
+
+  /**
+   * Get stored processing configuration
+   * @returns {object|null}
+   */
+  getProcessingConfig() {
+    const config = localStorage.getItem(PROCESSING_CONFIG_KEY)
+    return config ? JSON.parse(config) : null
+  },
+
+  /**
+   * Save processing configuration to localStorage
+   * @param {object} config
+   */
+  saveProcessingConfig(config) {
+    localStorage.setItem(PROCESSING_CONFIG_KEY, JSON.stringify(config))
+  },
+
+  /**
+   * Clear processing configuration from localStorage
+   */
+  clearProcessingConfig() {
+    localStorage.removeItem(PROCESSING_CONFIG_KEY)
   }
 }
 

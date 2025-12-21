@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { contentApi } from '../api/content'
+import { storage } from '../utils/storage'
 import './ProcessingPopup.css'
 
 const PROCESSING_STATES = {
@@ -114,7 +115,9 @@ function ProcessingPopup({ contentId, onClose, onComplete }) {
       setState(PROCESSING_STATES.PROCESSING)
       setProgress(0)
       setError('')
-      await contentApi.triggerProcessing(contentId)
+      // Load saved config from localStorage
+      const savedConfig = storage.getProcessingConfig()
+      await contentApi.triggerProcessing(contentId, savedConfig)
     } catch (err) {
       setError('Failed to retry processing')
       setState(PROCESSING_STATES.FAILED)
@@ -204,4 +207,5 @@ function ProcessingPopup({ contentId, onClose, onComplete }) {
 }
 
 export default ProcessingPopup
+
 
