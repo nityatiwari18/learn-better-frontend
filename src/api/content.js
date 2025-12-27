@@ -1,5 +1,6 @@
 import apiClient from './client'
 import { ENDPOINTS } from './endpoints'
+import { storage } from '../utils/storage'
 
 /**
  * Content API functions
@@ -148,21 +149,71 @@ export const contentApi = {
   /**
    * Get content processing status
    * @param {number} contentId - Content ID to check
+   * @param {string} [url] - Optional URL for cache checking (for URL-based content)
+   * @param {object} [config] - Optional config object for cache key generation
    * @returns {Promise<Object>} Processing status with summary and key concepts if completed
    */
-  async getProcessingStatus(contentId) {
+  async getProcessingStatus(contentId, url = null, config = null) {
+    // Check cache first if URL is provided
+    if (url) {
+      const cached = storage.getContentCache(url, config)
+      if (cached && (cached.summary || (cached.key_concepts && cached.key_concepts.length > 0))) {
+        // Return cached data in the same format as API response
+        return {
+          processing_status: 'completed',
+          summary: cached.summary ? { summary_text: cached.summary } : null,
+          key_concepts: cached.key_concepts || []
+        }
+      }
+    }
+
     const response = await apiClient.get(ENDPOINTS.CONTENT.PROCESSING_STATUS(contentId))
-    return response.data
+    const data = response.data
+
+    // Cache the response if URL is provided and processing is completed
+    if (url && data.processing_status === 'completed') {
+      // Merge with existing cache to preserve quiz data if it exists
+      const existingCache = storage.getContentCache(url, config) || {}
+      storage.setContentCache(url, {
+        ...existingCache,
+        summary: data.summary?.summary_text || null,
+        key_concepts: data.key_concepts || []
+      }, config)
+    }
+
+    return data
   },
 
   /**
    * Get quiz by content ID (auto-creates if missing)
    * @param {number} contentId - Content ID
+   * @param {string} [url] - Optional URL for cache checking (for URL-based content)
+   * @param {boolean} [bypassCache=false] - If true, skip cache check and always fetch fresh data
+   * @param {object} [config] - Optional config object for cache key generation
    * @returns {Promise<Object>} Quiz with questions
    */
-  async getQuiz(contentId) {
+  async getQuiz(contentId, url = null, bypassCache = false, config = null) {
+    // Check cache first if URL is provided and cache is not bypassed
+    if (url && !bypassCache) {
+      const cached = storage.getContentCache(url, config)
+      if (cached && cached.quiz) {
+        return cached.quiz
+      }
+    }
+
     const response = await apiClient.get(ENDPOINTS.QUIZ.BY_CONTENT_ID(contentId))
-    return response.data
+    const data = response.data
+
+    // Update cache with quiz data if URL is provided
+    if (url) {
+      const existingCache = storage.getContentCache(url, config) || {}
+      storage.setContentCache(url, {
+        ...existingCache,
+        quiz: data
+      }, config)
+    }
+
+    return data
   },
 
   /**

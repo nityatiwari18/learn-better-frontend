@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Modal from './Modal'
 import { contentApi } from '../api/content'
+import { storage } from '../utils/storage'
 import ProcessingPopup from './ProcessingPopup'
 import ProcessingConfigModal from './ProcessingConfigModal'
 import './UploadModal.css'
@@ -51,6 +52,8 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
   const [showConfigModal, setShowConfigModal] = useState(false)
   const [processingConfig, setProcessingConfig] = useState(null)
   const [pendingUpload, setPendingUpload] = useState(null)
+  const [processingUrl, setProcessingUrl] = useState(null)
+  const [cachedProcessingData, setCachedProcessingData] = useState(null)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -86,6 +89,34 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
     setIsLoading(true)
 
     try {
+      // Check cache for URL uploads
+      if (pendingUpload.activeTab === 'url' && pendingUpload.url.trim()) {
+        const cachedData = storage.getContentCache(pendingUpload.url.trim(), config)
+        // Only use cache if it has summary or key_concepts (processing results)
+        if (cachedData && (cachedData.summary || (cachedData.key_concepts && cachedData.key_concepts.length > 0))) {
+          console.log('Cache hit for URL:', pendingUpload.url.trim(), 'with config hash')
+          // Use cached data - we still need to upload to get content ID, but skip processing
+          try {
+            const response = await contentApi.uploadWeblink(pendingUpload.url.trim())
+            if (response && response.content && response.content.id) {
+              // Store URL for ProcessingPopup to use for caching quiz later
+              setProcessingContentId(response.content.id)
+              setProcessingUrl(pendingUpload.url.trim())
+              // Pass cached data to ProcessingPopup (remove url from cachedData if it exists)
+              const { url: _, ...cacheData } = cachedData
+              setCachedProcessingData(cacheData)
+              setShowProcessing(true)
+              setIsLoading(false)
+              setPendingUpload(null)
+              return
+            }
+          } catch (uploadErr) {
+            console.error('Failed to upload cached URL:', uploadErr)
+            // Fall through to normal processing flow
+          }
+        }
+      }
+
       let response
       if (pendingUpload.activeTab === 'url' && pendingUpload.url.trim()) {
         response = await contentApi.uploadWeblink(pendingUpload.url.trim())
@@ -109,6 +140,10 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
           await contentApi.triggerProcessing(response.content.id, config)
           console.log('Processing triggered successfully, showing popup')
           // Show processing popup
+          // Store URL for caching later if it's a URL upload
+          if (pendingUpload.activeTab === 'url' && pendingUpload.url.trim()) {
+            setProcessingUrl(pendingUpload.url.trim())
+          }
           setProcessingContentId(response.content.id)
           setShowProcessing(true)
         } catch (processingErr) {
@@ -117,6 +152,9 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
           // Still try to show processing popup if ID exists, otherwise error
           if (response.content.id) {
             console.log('Showing popup despite error')
+            if (pendingUpload.activeTab === 'url' && pendingUpload.url.trim()) {
+              setProcessingUrl(pendingUpload.url.trim())
+            }
             setProcessingContentId(response.content.id)
             setShowProcessing(true)
           } else {
@@ -146,6 +184,8 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
     setActiveTab('url')
     setShowProcessing(false)
     setProcessingContentId(null)
+    setProcessingUrl(null)
+    setCachedProcessingData(null)
     setProcessingKey(prev => prev + 1)  // Increment key to force remount next time
 
     // Notify parent and close
@@ -158,6 +198,8 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
   const handleProcessingClose = () => {
     setShowProcessing(false)
     setProcessingContentId(null)
+    setProcessingUrl(null)
+    setCachedProcessingData(null)
     setProcessingKey(prev => prev + 1)  // Increment key to force remount next time
     // Reset form
     setUrl('')
@@ -209,6 +251,8 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
     setShowErrorPopup(false)
     setShowProcessing(false)
     setProcessingContentId(null)
+    setProcessingUrl(null)
+    setCachedProcessingData(null)
     onClose()
   }
 
@@ -249,12 +293,15 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
     (activeTab === 'text' && text.trim())
   )
 
-  // Show processing popup if processing
+      // Show processing popup if processing
   if (showProcessing && processingContentId) {
     return (
       <ProcessingPopup
         key={processingKey}
         contentId={processingContentId}
+        url={processingUrl}
+        config={processingConfig}
+        cachedData={cachedProcessingData}
         onClose={handleProcessingClose}
         onComplete={handleProcessingComplete}
       />
