@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import './QuestionStyles.css'
 
 /**
@@ -8,34 +8,76 @@ function MatchFollowingQuestion({ question, onAnswer, showFeedback, isCorrect, u
   const answerOptions = question.answer_options || question.answer_json || {}
   
   // Handle both formats: {pairs: [...]} or {left: [...], right: [...]}
-  let terms, matches
+  let terms
   if (answerOptions.pairs) {
     terms = answerOptions.pairs.map(p => p.term)
-    matches = [...answerOptions.pairs.map(p => p.match)].sort(() => Math.random() - 0.5)
   } else if (answerOptions.left && answerOptions.right) {
     terms = answerOptions.left || []
-    matches = [...(answerOptions.right || [])].sort(() => Math.random() - 0.5)
   } else {
     terms = []
-    matches = []
   }
   
-  const [userMatches, setUserMatches] = useState(userAnswer || {})
+  // Helper function to normalize userAnswer (array or object format) to object format
+  const normalizeUserAnswer = (answer) => {
+    if (!answer) return {}
+    if (Array.isArray(answer)) {
+      // Convert array format [{term: 'x', match: 'y'}] to object format {x: 'y'}
+      return answer.reduce((acc, item) => {
+        if (item && item.term && item.match) {
+          acc[item.term] = item.match
+        }
+        return acc
+      }, {})
+    }
+    return answer // Already in object format
+  }
+  
+  const [matches, setMatches] = useState([])
+  const [userMatches, setUserMatches] = useState(normalizeUserAnswer(userAnswer))
   const [draggedMatch, setDraggedMatch] = useState(null)
   const [dragOverTerm, setDragOverTerm] = useState(null)
 
+  // Initialize matches array only when question changes
   useEffect(() => {
-    if (userAnswer) {
-      setUserMatches(userAnswer)
-    }
-  }, [userAnswer])
-
-  // Reset all state when question changes
-  useEffect(() => {
-    setUserMatches(userAnswer || {})
+    const currentUserMatches = userAnswer || {}
+    setUserMatches(currentUserMatches)
     setDraggedMatch(null)
     setDragOverTerm(null)
-  }, [question.id, userAnswer])
+    
+    // Initialize matches array with enabled flags
+    let initialMatches = []
+    if (answerOptions.pairs) {
+      initialMatches = answerOptions.pairs.map(p => p.match)
+    } else if (answerOptions.left && answerOptions.right) {
+      initialMatches = [...(answerOptions.right || [])]
+    }
+    
+    // Shuffle once and add enabled flag
+    const shuffledMatches = [...initialMatches].sort(() => Math.random() - 0.5)
+    const matchesWithFlags = shuffledMatches.map(value => ({
+      value,
+      enabled: !Object.values(currentUserMatches).includes(value)
+    }))
+    setMatches(matchesWithFlags)
+  }, [question.id, answerOptions])
+
+  // Update userMatches and enabled flags when userAnswer changes (without re-initializing matches array)
+  useEffect(() => {
+    const currentUserMatches = normalizeUserAnswer(userAnswer)
+    setUserMatches(currentUserMatches)
+    
+    // Update enabled flags in existing matches array based on userAnswer
+    // Only update if matches array is already initialized (not empty)
+    setMatches(prevMatches => {
+      if (prevMatches.length === 0) {
+        return prevMatches // Don't update if matches haven't been initialized yet
+      }
+      return prevMatches.map(m => ({
+        ...m,
+        enabled: !Object.values(currentUserMatches).includes(m.value)
+      }))
+    })
+  }, [userAnswer])
 
   const handleDragStart = (match) => {
     setDraggedMatch(match)
@@ -68,6 +110,14 @@ function MatchFollowingQuestion({ question, onAnswer, showFeedback, isCorrect, u
     newMatches[term] = draggedMatch
     
     setUserMatches(newMatches)
+    
+    // Update matches array: if it was already assigned, it stays disabled; if new assignment, disable it
+    setMatches(prevMatches => 
+      prevMatches.map(m => 
+        m.value === draggedMatch ? { ...m, enabled: false } : m
+      )
+    )
+    
     setDraggedMatch(null)
     setDragOverTerm(null)
     
@@ -93,12 +143,23 @@ function MatchFollowingQuestion({ question, onAnswer, showFeedback, isCorrect, u
     if (showFeedback) return
     
     const newMatches = { ...userMatches }
+    const removedMatch = newMatches[term]
     delete newMatches[term]
     setUserMatches(newMatches)
+    
+    // Re-enable the removed match in matches array
+    if (removedMatch) {
+      setMatches(prevMatches => 
+        prevMatches.map(m => 
+          m.value === removedMatch ? { ...m, enabled: true } : m
+        )
+      )
+    }
   }
 
   const isMatchUsed = (match) => {
-    return Object.values(userMatches).includes(match)
+    const matchItem = matches.find(m => m.value === match)
+    return matchItem ? !matchItem.enabled : false
   }
 
   const getTermClass = (term) => {
@@ -127,14 +188,18 @@ function MatchFollowingQuestion({ question, onAnswer, showFeedback, isCorrect, u
     return className
   }
 
-  const getMatchClass = (match) => {
+  const getMatchClass = (matchValue, enabled) => {
     let className = 'match-option-card'
     
-    if (isMatchUsed(match)) {
+    if (!enabled) {
+      className += ' disabled'
+    }
+    
+    if (isMatchUsed(matchValue)) {
       className += ' used'
     }
     
-    if (draggedMatch === match) {
+    if (draggedMatch === matchValue) {
       className += ' dragging'
     }
     
@@ -189,12 +254,12 @@ function MatchFollowingQuestion({ question, onAnswer, showFeedback, isCorrect, u
           {matches.map((match, index) => (
             <div
               key={index}
-              className={getMatchClass(match)}
-              draggable={!showFeedback && !isMatchUsed(match)}
-              onDragStart={() => handleDragStart(match)}
+              className={getMatchClass(match.value, match.enabled)}
+              draggable={!showFeedback && match.enabled}
+              onDragStart={() => handleDragStart(match.value)}
               onDragEnd={() => setDraggedMatch(null)}
             >
-              {match}
+              {match.value}
             </div>
           ))}
         </div>
