@@ -16,6 +16,51 @@ const QUIZ_STATES = {
   ERROR: 'error'
 }
 
+// Flag to use test data instead of API
+const USE_TEST_DATA = false
+
+// Mock quiz data for testing MatchTheFollowing questions
+const MOCK_QUIZ_RESPONSE = {
+  quiz: {
+    id: 1,
+    content_id: 1,
+    questions: [
+      {
+        id: 1,
+        quiz_id: 1,
+        question_type: "match",
+        question_title: "Match countries with capitals",
+        description: "Match each country with its capital city",
+        answer_options: {
+          left: ["France", "Germany", "Italy"],
+          right: ["Paris", "Berlin", "Rome"]
+        },
+        correct_answers: ["0-0", "1-1", "2-2"],
+        hint: "Think about European geography",
+        linked_concepts: ["Geography"],
+        order_index: 0
+      },
+      {
+        id: 2,
+        quiz_id: 1,
+        question_type: "match",
+        question_title: "Match programming languages with their paradigms",
+        description: "Match each programming language with its primary paradigm",
+        answer_options: {
+          left: ["Python", "Haskell", "C++"],
+          right: ["Object-Oriented", "Functional", "Procedural"]
+        },
+        correct_answers: ["0-0", "1-1", "2-2"],
+        hint: "Consider the primary programming style of each language",
+        linked_concepts: ["Programming"],
+        order_index: 1
+      }
+    ],
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+}
+
 function QuizPopup({ contentId, onClose }) {
   const [state, setState] = useState(QUIZ_STATES.LOADING)
   const [quiz, setQuiz] = useState(null)
@@ -92,7 +137,17 @@ function QuizPopup({ contentId, onClose }) {
       setState(QUIZ_STATES.LOADING)
       setLoadingProgress(0)
       
-      const response = await contentApi.getQuiz(contentId)
+      // Use test data if flag is enabled, otherwise call API
+      let response
+      if (USE_TEST_DATA) {
+        console.log('Using test data for MatchTheFollowing questions')
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 500))
+        response = MOCK_QUIZ_RESPONSE
+      } else {
+        response = await contentApi.getQuiz(contentId)
+      }
+      
       console.log('Quiz fetch completed, got', response.quiz.questions?.length, 'questions')
       
       // Complete progress

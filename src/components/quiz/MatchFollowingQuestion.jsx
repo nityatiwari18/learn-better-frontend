@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import './QuestionStyles.css'
 
 /**
@@ -29,6 +29,13 @@ function MatchFollowingQuestion({ question, onAnswer, showFeedback, isCorrect, u
       setUserMatches(userAnswer)
     }
   }, [userAnswer])
+
+  // Reset all state when question changes
+  useEffect(() => {
+    setUserMatches(userAnswer || {})
+    setDraggedMatch(null)
+    setDragOverTerm(null)
+  }, [question.id, userAnswer])
 
   const handleDragStart = (match) => {
     setDraggedMatch(match)
@@ -64,8 +71,9 @@ function MatchFollowingQuestion({ question, onAnswer, showFeedback, isCorrect, u
     setDraggedMatch(null)
     setDragOverTerm(null)
     
-    // Check if all terms are matched
-    if (Object.keys(newMatches).length === terms.length) {
+    // Check if all terms are matched (only count matches for terms in current question)
+    const matchedTermsCount = terms.filter(term => newMatches[term]).length
+    if (matchedTermsCount === terms.length) {
       // Convert to array format for validation
       const matchArray = terms.map(term => ({
         term: term,
