@@ -47,6 +47,7 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
   const [showErrorPopup, setShowErrorPopup] = useState(false)
   const [showProcessing, setShowProcessing] = useState(false)
   const [processingContentId, setProcessingContentId] = useState(null)
+  const [processingKey, setProcessingKey] = useState(0)
   const [showConfigModal, setShowConfigModal] = useState(false)
   const [processingConfig, setProcessingConfig] = useState(null)
   const [pendingUpload, setPendingUpload] = useState(null)
@@ -145,6 +146,7 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
     setActiveTab('url')
     setShowProcessing(false)
     setProcessingContentId(null)
+    setProcessingKey(prev => prev + 1)  // Increment key to force remount next time
 
     // Notify parent and close
     if (onUploadSuccess) {
@@ -156,6 +158,7 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
   const handleProcessingClose = () => {
     setShowProcessing(false)
     setProcessingContentId(null)
+    setProcessingKey(prev => prev + 1)  // Increment key to force remount next time
     // Reset form
     setUrl('')
     setFile(null)
@@ -250,6 +253,7 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
   if (showProcessing && processingContentId) {
     return (
       <ProcessingPopup
+        key={processingKey}
         contentId={processingContentId}
         onClose={handleProcessingClose}
         onComplete={handleProcessingComplete}

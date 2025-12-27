@@ -18,6 +18,7 @@ function ProcessingPopup({ contentId, onClose, onComplete }) {
   const [keyConcepts, setKeyConcepts] = useState([])
   const [error, setError] = useState('')
   const [showQuiz, setShowQuiz] = useState(false)
+  const [quizKey, setQuizKey] = useState(0)
   const pollingRef = useRef(null)
   const progressRef = useRef(null)
 
@@ -112,6 +113,29 @@ function ProcessingPopup({ contentId, onClose, onComplete }) {
     }
   }
 
+  // Reset all ProcessingPopup state when closing
+  const handleClose = () => {
+    // Clear intervals
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current)
+      pollingRef.current = null
+    }
+    if (progressRef.current) {
+      clearInterval(progressRef.current)
+      progressRef.current = null
+    }
+    // Reset all state
+    setState(PROCESSING_STATES.PROCESSING)
+    setProgress(0)
+    setSummary(null)
+    setKeyConcepts([])
+    setError('')
+    setShowQuiz(false)
+    if (onClose) {
+      onClose()
+    }
+  }
+
   const handleRetry = async () => {
     try {
       setState(PROCESSING_STATES.PROCESSING)
@@ -197,7 +221,7 @@ function ProcessingPopup({ contentId, onClose, onComplete }) {
               <button className="retry-btn" onClick={handleRetry}>
                 Retry
               </button>
-              <button className="cancel-btn" onClick={onClose}>
+              <button className="cancel-btn" onClick={handleClose}>
                 Cancel
               </button>
             </div>
@@ -208,10 +232,14 @@ function ProcessingPopup({ contentId, onClose, onComplete }) {
       {/* Quiz Popup */}
       {showQuiz && (
         <QuizPopup
+          key={quizKey}
           contentId={contentId}
           onClose={() => {
             setShowQuiz(false)
-            handleDone()
+            setQuizKey(prev => prev + 1)  // Increment key to force remount next time
+            if (onClose) {
+              onClose()  // Directly close ProcessingPopup and UploadModal, return to Dashboard
+            }
           }}
         />
       )}
