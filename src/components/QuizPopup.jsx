@@ -61,7 +61,7 @@ const MOCK_QUIZ_RESPONSE = {
   }
 }
 
-function QuizPopup({ contentId, onClose }) {
+function QuizPopup({ contentId, url, config, onClose }) {
   const [state, setState] = useState(QUIZ_STATES.LOADING)
   const [quiz, setQuiz] = useState(null)
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -78,9 +78,9 @@ function QuizPopup({ contentId, onClose }) {
   const isFetchingRef = useRef(false) // Prevent multiple simultaneous fetches
   const hasInitializedRef = useRef(false) // Track if quiz has been loaded
 
-  // Fetch quiz on mount or contentId change
+  // Fetch quiz on mount or contentId/url change
   useEffect(() => {
-    console.log('QuizPopup effect triggered, contentId:', contentId)
+    console.log('QuizPopup effect triggered, contentId:', contentId, 'url:', url)
     
     // Reset initialization flag when contentId changes
     hasInitializedRef.current = false
@@ -93,7 +93,7 @@ function QuizPopup({ contentId, onClose }) {
     return () => {
       console.log('QuizPopup effect cleanup')
     }
-  }, [contentId])
+  }, [contentId, url, config])
 
   // Simulated loading progress
   useEffect(() => {
@@ -145,7 +145,7 @@ function QuizPopup({ contentId, onClose }) {
         await new Promise(resolve => setTimeout(resolve, 500))
         response = MOCK_QUIZ_RESPONSE
       } else {
-        response = await contentApi.getQuiz(contentId)
+        response = await contentApi.getQuiz(contentId, url, false, config)
       }
       
       console.log('Quiz fetch completed, got', response.quiz.questions?.length, 'questions')
@@ -213,7 +213,7 @@ function QuizPopup({ contentId, onClose }) {
           return
         }
         
-        const response = await contentApi.getQuiz(contentId)
+        const response = await contentApi.getQuiz(contentId, url, true, config) // bypassCache = true to get fresh data during polling
         const newCount = response.quiz.questions?.length || 0
         
         console.log(`📡 Poll #${pollCount} result: Current ${currentCount} questions, API returned ${newCount}`)

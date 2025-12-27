@@ -11,11 +11,11 @@ const PROCESSING_STATES = {
   FAILED: 'failed'
 }
 
-function ProcessingPopup({ contentId, onClose, onComplete }) {
-  const [state, setState] = useState(PROCESSING_STATES.PROCESSING)
-  const [progress, setProgress] = useState(0)
-  const [summary, setSummary] = useState(null)
-  const [keyConcepts, setKeyConcepts] = useState([])
+function ProcessingPopup({ contentId, url, config, cachedData, onClose, onComplete }) {
+  const [state, setState] = useState(cachedData ? PROCESSING_STATES.COMPLETED : PROCESSING_STATES.PROCESSING)
+  const [progress, setProgress] = useState(cachedData ? 100 : 0)
+  const [summary, setSummary] = useState(cachedData?.summary || null)
+  const [keyConcepts, setKeyConcepts] = useState(cachedData?.key_concepts || [])
   const [error, setError] = useState('')
   const [showQuiz, setShowQuiz] = useState(false)
   const [quizKey, setQuizKey] = useState(0)
@@ -46,13 +46,13 @@ function ProcessingPopup({ contentId, onClose, onComplete }) {
     }
   }, [state])
 
-  // Poll processing status
+  // Poll processing status (skip if using cached data)
   useEffect(() => {
-    if (!contentId) return
+    if (!contentId || cachedData) return
 
     const checkStatus = async () => {
       try {
-        const status = await contentApi.getProcessingStatus(contentId)
+        const status = await contentApi.getProcessingStatus(contentId, url)
         
         if (status.processing_status === 'completed') {
           // Stop polling
@@ -68,11 +68,25 @@ function ProcessingPopup({ contentId, onClose, onComplete }) {
           setState(PROCESSING_STATES.COMPLETED)
           
           // Set results
+          let summaryText = null
+          let concepts = []
           if (status.summary) {
-            setSummary(status.summary.summary_text)
+            summaryText = status.summary.summary_text
+            setSummary(summaryText)
           }
           if (status.key_concepts && status.key_concepts.length > 0) {
-            setKeyConcepts(status.key_concepts)
+            concepts = status.key_concepts
+            setKeyConcepts(concepts)
+          }
+
+          // Cache the results if we have a URL (getProcessingStatus already caches, but ensure it's complete)
+          if (url) {
+            const existingCache = storage.getContentCache(url, config) || {}
+            storage.setContentCache(url, {
+              ...existingCache,
+              summary: summaryText,
+              key_concepts: concepts
+            }, config)
           }
         } else if (status.processing_status === 'failed') {
           // Stop polling
@@ -102,7 +116,7 @@ function ProcessingPopup({ contentId, onClose, onComplete }) {
         clearInterval(pollingRef.current)
       }
     }
-  }, [contentId])
+  }, [contentId, cachedData, url, config])
 
   const handleDone = () => {
     if (onComplete) {
@@ -234,6 +248,8 @@ function ProcessingPopup({ contentId, onClose, onComplete }) {
         <QuizPopup
           key={quizKey}
           contentId={contentId}
+          url={url}
+          config={config}
           onClose={() => {
             setShowQuiz(false)
             setQuizKey(prev => prev + 1)  // Increment key to force remount next time
