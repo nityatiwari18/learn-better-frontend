@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { formatCorrectAnswerForDisplay } from '../../utils/quizValidator'
 import './QuestionStyles.css'
 
 /**
@@ -28,8 +29,8 @@ function OddOneOutQuestion({ question, onAnswer, showFeedback, isCorrect, userAn
       if (selectedOption === option) {
         className += isCorrect ? ' correct' : ' incorrect'
       }
-      // Show correct answer if user was wrong
-      if (!isCorrect && question.correct_answers?.includes(option)) {
+      // Always show correct answer when feedback is shown
+      if (question.correct_answers?.includes(option)) {
         className += ' correct-answer'
       }
     }
@@ -63,6 +64,11 @@ function OddOneOutQuestion({ question, onAnswer, showFeedback, isCorrect, userAn
             <div className="feedback-title">
               {isCorrect ? 'Correct! You found the odd one out!' : 'Incorrect'}
             </div>
+            {!isCorrect && (
+              <div className="feedback-answer">
+                The correct answer is <strong>{formatCorrectAnswerForDisplay(question)}</strong>.
+              </div>
+            )}
             {!isCorrect && question.hint_description && (
               <div className="feedback-hint">
                 <strong>Hint:</strong> {question.hint_description}
