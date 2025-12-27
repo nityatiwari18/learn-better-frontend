@@ -7,6 +7,7 @@ import FillBlankQuestion from './quiz/FillBlankQuestion'
 import MatchFollowingQuestion from './quiz/MatchFollowingQuestion'
 import OddOneOutQuestion from './quiz/OddOneOutQuestion'
 import QuizScore from './quiz/QuizScore'
+import Modal from './Modal'
 import './QuizPopup.css'
 
 const QUIZ_STATES = {
@@ -72,7 +73,20 @@ function QuizPopup({ contentId, url, config, onClose }) {
   const [error, setError] = useState('')
   const [loadingProgress, setLoadingProgress] = useState(0)
   const [loadingMoreQuestions, setLoadingMoreQuestions] = useState(false)
+  const [showHintModal, setShowHintModal] = useState(false)
   const progressRef = useRef(null)
+
+  // Add/remove body class when hint modal opens/closes for z-index override
+  useEffect(() => {
+    if (showHintModal) {
+      document.body.classList.add('hint-modal-open')
+    } else {
+      document.body.classList.remove('hint-modal-open')
+    }
+    return () => {
+      document.body.classList.remove('hint-modal-open')
+    }
+  }, [showHintModal])
   const pollIntervalRef = useRef(null)
   const questionCountRef = useRef(0) // Track current question count
   const isFetchingRef = useRef(false) // Prevent multiple simultaneous fetches
@@ -314,6 +328,7 @@ function QuizPopup({ contentId, url, config, onClose }) {
       setCurrentAnswer(null)
       setShowFeedback(false)
       setIsCorrect(false)
+      setShowHintModal(false) // Close hint modal when moving to next question
     } else if (loadingMoreQuestions) {
       // More questions are being generated, wait for them
       console.log('Waiting for more questions to load...')
@@ -414,6 +429,14 @@ function QuizPopup({ contentId, url, config, onClose }) {
             </div>
 
             <div className="quiz-footer">
+              {quiz.questions[currentIndex] && (quiz.questions[currentIndex].hint || quiz.questions[currentIndex].hint_description) && (
+                <button
+                  className="quiz-hint-btn"
+                  onClick={() => setShowHintModal(true)}
+                >
+                  Hint
+                </button>
+              )}
               <button
                 className="quiz-next-btn"
                 onClick={handleNext}
@@ -455,6 +478,22 @@ function QuizPopup({ contentId, url, config, onClose }) {
           </div>
         )}
       </div>
+      
+      {/* Hint Modal */}
+      {state === QUIZ_STATES.ACTIVE && quiz && quiz.questions[currentIndex] && (
+        <Modal
+          isOpen={showHintModal}
+          onClose={() => setShowHintModal(false)}
+          customClassName="quiz-hint-modal"
+        >
+          <div className="quiz-hint-modal-content">
+            <h3 className="quiz-hint-modal-title">Hint</h3>
+            <p className="quiz-hint-modal-text">
+              {quiz.questions[currentIndex].hint || quiz.questions[currentIndex].hint_description || 'No hint available.'}
+            </p>
+          </div>
+        </Modal>
+      )}
     </div>
   )
 }
