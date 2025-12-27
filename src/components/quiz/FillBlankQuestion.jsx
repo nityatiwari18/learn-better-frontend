@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { formatCorrectAnswerForDisplay } from '../../utils/quizValidator'
 import './QuestionStyles.css'
 
 /**
@@ -21,10 +22,13 @@ function FillBlankQuestion({ question, onAnswer, showFeedback, isCorrect, userAn
   const getOptionClassName = (optionKey) => {
     let className = 'option-card'
     if (showFeedback) {
+      // Highlight user's selected answer
+      if (selectedAnswer === optionKey) {
+        className += isCorrect ? ' correct' : ' incorrect'
+      }
+      // Always highlight correct answer when feedback is shown
       if (question.correct_answers && question.correct_answers.includes(optionKey)) {
-        className += ' correct'
-      } else if (selectedAnswer === optionKey && !isCorrect) {
-        className += ' incorrect'
+        className += ' correct-answer'
       }
     } else if (selectedAnswer === optionKey) {
       className += ' selected'
@@ -38,7 +42,7 @@ function FillBlankQuestion({ question, onAnswer, showFeedback, isCorrect, userAn
 
   return (
     <div className="question-container">
-      <h3 className="question-title">{question.question_title}</h3>
+      <h2 className="question-title">{question.question_title}</h2>
       {questionText && <p className="question-description">{questionText}</p>}
       
       <div className="question-options">
@@ -54,12 +58,23 @@ function FillBlankQuestion({ question, onAnswer, showFeedback, isCorrect, userAn
       </div>
 
       {showFeedback && (
-        <div className="feedback-section">
-          <p className={`feedback-message ${isCorrect ? 'correct' : 'incorrect'}`}>
-            <span className="feedback-icon">{isCorrect ? '✓' : '✗'}</span>
-            {isCorrect ? 'Correct!' : 'Incorrect.'}
-          </p>
-          {!isCorrect && question.hint && <p className="hint-text">Hint: {question.hint}</p>}
+        <div className={`feedback ${isCorrect ? 'correct' : 'incorrect'}`}>
+          <div className="feedback-icon">{isCorrect ? '✓' : '✗'}</div>
+          <div className="feedback-content">
+            <div className="feedback-title">
+              {isCorrect ? 'Correct!' : 'Incorrect'}
+            </div>
+            {!isCorrect && (
+              <div className="feedback-answer">
+                The correct answer is <strong>{formatCorrectAnswerForDisplay(question)}</strong>.
+              </div>
+            )}
+            {!isCorrect && (question.hint || question.hint_description) && (
+              <div className="feedback-hint">
+                <strong>Hint:</strong> {question.hint || question.hint_description}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

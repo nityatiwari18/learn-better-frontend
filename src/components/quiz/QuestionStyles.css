@@ -89,6 +89,18 @@
   line-height: 1.5;
 }
 
+.feedback-answer {
+  color: var(--color-text);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-top: 8px;
+}
+
+.feedback-answer strong {
+  color: #22c55e;
+  font-weight: 600;
+}
+
 /* Objective Question */
 .options-grid {
   display: grid;
@@ -224,6 +236,12 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.question-options {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .fill-blank-text-display {

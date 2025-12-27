@@ -186,8 +186,56 @@ export const getCorrectAnswer = (question) => {
   return question.correct_answers
 }
 
+/**
+ * Format correct answers for display in feedback messages
+ * @param {Object} question - Question object
+ * @returns {string} Formatted correct answer text (e.g., "A", "A or B", "A, B, or C")
+ */
+export const formatCorrectAnswerForDisplay = (question) => {
+  if (!question || !question.correct_answers) return 'N/A'
+  
+  const correctAnswers = Array.isArray(question.correct_answers)
+    ? question.correct_answers
+    : [question.correct_answers]
+  
+  if (correctAnswers.length === 0) return 'N/A'
+  
+  const questionType = question.question_type
+  
+  // Handle True/False questions
+  if (questionType === 'true_false' || questionType === 'TrueOrFalse') {
+    const answer = correctAnswers[0]
+    return answer.charAt(0).toUpperCase() + answer.slice(1) // Capitalize first letter
+  }
+  
+  // Handle Odd One Out - return the actual item text
+  if (questionType === 'odd_one_out' || questionType === 'OddOneOut') {
+    return correctAnswers[0] // Return the item text directly
+  }
+  
+  // Handle Match Following - return formatted pairs
+  if (questionType === 'match' || questionType === 'MatchTheFollowing') {
+    // For match questions, we show correct answer per term in the component
+    // This function is mainly for other question types
+    return 'See correct matches above'
+  }
+  
+  // Handle Objective and FillBlank - format letters (A, B, C, D)
+  if (correctAnswers.length === 1) {
+    return correctAnswers[0]
+  } else if (correctAnswers.length === 2) {
+    return `${correctAnswers[0]} or ${correctAnswers[1]}`
+  } else {
+    // 3 or more answers: "A, B, or C"
+    const allButLast = correctAnswers.slice(0, -1).join(', ')
+    const last = correctAnswers[correctAnswers.length - 1]
+    return `${allButLast}, or ${last}`
+  }
+}
+
 export default {
   validateAnswer,
   getCorrectAnswer,
+  formatCorrectAnswerForDisplay,
 }
 

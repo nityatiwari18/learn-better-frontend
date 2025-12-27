@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { formatCorrectAnswerForDisplay } from '../../utils/quizValidator'
 import './QuestionStyles.css'
 
 /**
@@ -32,9 +33,9 @@ function TrueFalseQuestion({ question, onAnswer, showFeedback, isCorrect, userAn
       if (selectedAnswer === answer) {
         className += isCorrect ? ' correct' : ' incorrect'
       }
-      // Show correct answer if user was wrong
+      // Always show correct answer when feedback is shown
       // correct_answers contains lowercase (true/false), answer is capitalized (True/False)
-      if (!isCorrect && question.correct_answers?.includes(answer.toLowerCase())) {
+      if (question.correct_answers?.includes(answer.toLowerCase())) {
         className += ' correct-answer'
       }
     }
@@ -76,6 +77,11 @@ function TrueFalseQuestion({ question, onAnswer, showFeedback, isCorrect, userAn
             <div className="feedback-title">
               {isCorrect ? 'Correct!' : 'Incorrect'}
             </div>
+            {!isCorrect && (
+              <div className="feedback-answer">
+                The correct answer is <strong>{formatCorrectAnswerForDisplay(question)}</strong>.
+              </div>
+            )}
             {!isCorrect && question.hint_description && (
               <div className="feedback-hint">
                 <strong>Hint:</strong> {question.hint_description}

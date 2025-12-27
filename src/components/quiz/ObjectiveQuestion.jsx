@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { formatCorrectAnswerForDisplay } from '../../utils/quizValidator'
 import './QuestionStyles.css'
 
 /**
@@ -36,23 +37,20 @@ function ObjectiveQuestion({ question, onAnswer, showFeedback, isCorrect, userAn
   const getOptionClass = (option) => {
     let className = 'option-card'
     
-    if (selectedOption === option) {
-      className += ' selected'
-    }
-    
     if (showFeedback) {
+      // Highlight user's selected answer
       if (selectedOption === option) {
         className += isCorrect ? ' correct' : ' incorrect'
       }
-      // Show correct answer if user was wrong
+      // Always show correct answer when feedback is shown
       // correct_answers contains letters (A, B, C), so convert option to letter
-      if (!isCorrect) {
-        const optionIndex = options.indexOf(option)
-        const optionLetter = String.fromCharCode(65 + optionIndex)
-        if (question.correct_answers?.includes(optionLetter)) {
-          className += ' correct-answer'
-        }
+      const optionIndex = options.indexOf(option)
+      const optionLetter = String.fromCharCode(65 + optionIndex)
+      if (question.correct_answers?.includes(optionLetter)) {
+        className += ' correct-answer'
       }
+    } else if (selectedOption === option) {
+      className += ' selected'
     }
     
     return className
@@ -85,6 +83,11 @@ function ObjectiveQuestion({ question, onAnswer, showFeedback, isCorrect, userAn
             <div className="feedback-title">
               {isCorrect ? 'Correct!' : 'Incorrect'}
             </div>
+            {!isCorrect && (
+              <div className="feedback-answer">
+                The correct answer is <strong>{formatCorrectAnswerForDisplay(question)}</strong>.
+              </div>
+            )}
             {!isCorrect && question.hint_description && (
               <div className="feedback-hint">
                 <strong>Hint:</strong> {question.hint_description}
