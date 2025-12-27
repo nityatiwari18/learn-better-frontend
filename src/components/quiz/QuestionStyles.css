@@ -583,7 +583,7 @@
 
 .breakdown-bar {
   height: 100%;
-  background: linear-gradient(90deg, var(--color-accent) 0%, #00f5c4 100%);
+  background: linear-gradient(90deg, var(--color-accent) 0%, #4d7dd9 100%);
   border-radius: 12px;
   transition: width 0.5s ease-out;
 }
@@ -614,13 +614,13 @@
   background: var(--color-accent);
   color: white;
   border: none;
-  box-shadow: 0 4px 12px rgba(0, 245, 196, 0.3);
+  box-shadow: 0 4px 12px rgba(32, 80, 179, 0.25);
 }
 
 .quiz-review-btn:hover {
-  background: #00d4a8;
+  background: #1a46a0;
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 245, 196, 0.4);
+  box-shadow: 0 6px 16px rgba(32, 80, 179, 0.35);
 }
 
 .quiz-done-btn {
