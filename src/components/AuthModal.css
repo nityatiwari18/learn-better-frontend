@@ -65,7 +65,7 @@
 }
 
 .form-input:hover {
-  border-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(0, 0, 0, 0.2);
 }
 
 .form-input:focus {
@@ -78,7 +78,7 @@
   margin-top: auto;
   padding: 11px 18px;
   background: var(--color-accent);
-  color: var(--color-bg);
+  color: #ffffff;
   font-size: 0.9375rem;
   font-weight: 600;
   border-radius: 6px;

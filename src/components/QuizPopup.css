@@ -5,7 +5,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
@@ -21,7 +21,7 @@
 
 /* Quiz Popup Container */
 .quiz-popup {
-  background: var(--color-surface);
+  background: var(--color-bg-elevated);
   border: 1px solid var(--color-border);
   border-radius: 20px;
   max-width: 900px;
@@ -29,7 +29,7 @@
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.2);
   animation: slideUp 0.3s ease-out;
 }
 

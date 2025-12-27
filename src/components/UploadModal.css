@@ -211,7 +211,7 @@
 
 /* Error Popup */
 .error-popup {
-  background: var(--color-surface);
+  background: var(--color-bg-elevated);
   border: 1px solid rgba(239, 68, 68, 0.4);
   border-radius: 16px;
   padding: var(--space-xl);
@@ -219,7 +219,7 @@
   width: 90%;
   text-align: center;
   animation: slideUp 0.3s ease-out;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
 }
 
 @keyframes slideUp {
@@ -265,7 +265,7 @@
 .error-popup-btn {
   padding: 14px 32px;
   background: var(--color-accent);
-  color: var(--color-bg);
+  color: #ffffff;
   font-size: 1rem;
   font-weight: 600;
   border-radius: 10px;
@@ -284,7 +284,7 @@
   width: 100%;
   padding: 16px 24px;
   background: var(--color-accent);
-  color: var(--color-bg);
+  color: #ffffff;
   font-size: 1rem;
   font-weight: 600;
   border-radius: 12px;

@@ -1,13 +1,13 @@
 :root {
-  /* Deep ocean inspired palette */
-  --color-bg: #0a0f14;
-  --color-bg-elevated: #121a22;
-  --color-surface: #1a252f;
-  --color-text: #e8eff5;
-  --color-text-muted: #7a8fa3;
-  --color-accent: #00d9a6;
-  --color-accent-glow: rgba(0, 217, 166, 0.15);
-  --color-border: rgba(255, 255, 255, 0.08);
+  /* Clean light theme palette */
+  --color-bg: #ffffff;
+  --color-bg-elevated: #f8f9fa;
+  --color-surface: #f1f3f5;
+  --color-text: #1a1a1a;
+  --color-text-muted: #6c757d;
+  --color-accent: #00b894;
+  --color-accent-glow: rgba(0, 184, 148, 0.15);
+  --color-border: rgba(0, 0, 0, 0.1);
   
   /* Typography */
   --font-display: 'Instrument Serif', Georgia, serif;
@@ -56,8 +56,8 @@ body::before {
   right: 0;
   bottom: 0;
   background: 
-    radial-gradient(ellipse 80% 50% at 20% -10%, var(--color-accent-glow), transparent),
-    radial-gradient(ellipse 60% 40% at 80% 110%, rgba(99, 102, 241, 0.1), transparent);
+    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(0, 184, 148, 0.03), transparent),
+    radial-gradient(ellipse 60% 40% at 80% 110%, rgba(99, 102, 241, 0.03), transparent);
   pointer-events: none;
   z-index: -1;
 }
@@ -102,7 +102,7 @@ h1, h2, h3, h4, h5, h6 {
 /* Selection */
 ::selection {
   background: var(--color-accent);
-  color: var(--color-bg);
+  color: #ffffff;
 }
 
 /* Scrollbar styling */
@@ -111,11 +111,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-bg);
+  background: var(--color-bg-elevated);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-surface);
+  background: #dee2e6;
   border-radius: 4px;
 }
 

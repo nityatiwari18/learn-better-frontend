@@ -5,7 +5,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
@@ -21,7 +21,7 @@
 
 /* Processing Popup Container */
 .processing-popup {
-  background: var(--color-surface);
+  background: var(--color-bg-elevated);
   border: 1px solid var(--color-border);
   border-radius: 20px;
   padding: 40px;
@@ -29,7 +29,7 @@
   width: 90%;
   max-height: 80vh;
   overflow-y: auto;
-  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.2);
   animation: slideUp 0.3s ease-out;
 }
 
@@ -198,7 +198,7 @@
 .start-quiz-btn {
   width: 100%;
   background: var(--color-accent);
-  color: var(--color-bg);
+  color: #ffffff;
   border: none;
   padding: 16px 32px;
   border-radius: 12px;
@@ -259,7 +259,7 @@
 .retry-btn {
   flex: 1;
   background: var(--color-accent);
-  color: var(--color-bg);
+  color: #ffffff;
   border: none;
   padding: 14px 24px;
   border-radius: 10px;
@@ -297,12 +297,12 @@
 }
 
 .processing-popup::-webkit-scrollbar-track {
-  background: var(--color-bg);
+  background: var(--color-bg-elevated);
   border-radius: 3px;
 }
 
 .processing-popup::-webkit-scrollbar-thumb {
-  background: var(--color-surface);
+  background: #dee2e6;
   border-radius: 3px;
 }
 

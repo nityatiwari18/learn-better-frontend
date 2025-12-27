@@ -82,7 +82,7 @@
 
 .processing-config-form .form-group input[type="text"]:hover,
 .processing-config-form .form-group input[type="password"]:hover {
-  border-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(0, 0, 0, 0.2);
 }
 
 .processing-config-form .form-group input[type="text"]:focus,
@@ -117,7 +117,7 @@
 }
 
 .processing-config-form .form-group textarea:hover {
-  border-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(0, 0, 0, 0.2);
 }
 
 .processing-config-form .form-group textarea:focus {
@@ -165,7 +165,7 @@
 
 .processing-config-form .btn-primary {
   background: var(--color-accent);
-  color: var(--color-bg);
+  color: #ffffff;
 }
 
 .processing-config-form .btn-primary:hover {
@@ -185,7 +185,7 @@
 
 .processing-config-form .btn-secondary:hover {
   background: var(--color-bg-elevated);
-  border-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(0, 0, 0, 0.2);
 }
 
 .processing-config-form .btn-cancel {

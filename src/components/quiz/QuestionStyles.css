@@ -112,7 +112,7 @@
   border-color: var(--color-accent);
   background: var(--color-surface);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .option-card.selected {
@@ -181,7 +181,7 @@
   border-color: var(--color-accent);
   background: var(--color-surface);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .true-false-button.selected {
@@ -308,7 +308,7 @@
   border-color: var(--color-accent);
   background: var(--color-surface);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .odd-one-out-card.selected {
@@ -455,7 +455,7 @@
   border-color: var(--color-accent);
   background: var(--color-surface);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .match-option-card.dragging {
