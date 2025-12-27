@@ -29,6 +29,12 @@ export const ENDPOINTS = {
     PROCESS: (id) => `/v1/content/${id}/process`,
     PROCESSING_STATUS: (id) => `/v1/content/${id}/processing-status`,
   },
+
+  // Quiz
+  QUIZ: {
+    BY_CONTENT_ID: (id) => `/v1/content/${id}/quiz`,
+    BY_ID: (id) => `/v1/quiz/${id}`,
+  },
 }
 
 export default ENDPOINTS

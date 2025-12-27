@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { contentApi } from '../api/content'
 import { storage } from '../utils/storage'
+import QuizPopup from './QuizPopup'
 import './ProcessingPopup.css'
 
 const PROCESSING_STATES = {
@@ -16,6 +17,7 @@ function ProcessingPopup({ contentId, onClose, onComplete }) {
   const [summary, setSummary] = useState(null)
   const [keyConcepts, setKeyConcepts] = useState([])
   const [error, setError] = useState('')
+  const [showQuiz, setShowQuiz] = useState(false)
   const pollingRef = useRef(null)
   const progressRef = useRef(null)
 
@@ -176,8 +178,8 @@ function ProcessingPopup({ contentId, onClose, onComplete }) {
               </div>
             )}
 
-            <button className="done-btn" onClick={handleDone}>
-              Done
+            <button className="start-quiz-btn" onClick={() => setShowQuiz(true)}>
+              Start Quiz
             </button>
           </>
         )}
@@ -202,6 +204,17 @@ function ProcessingPopup({ contentId, onClose, onComplete }) {
           </>
         )}
       </div>
+
+      {/* Quiz Popup */}
+      {showQuiz && (
+        <QuizPopup
+          contentId={contentId}
+          onClose={() => {
+            setShowQuiz(false)
+            handleDone()
+          }}
+        />
+      )}
     </div>
   )
 }

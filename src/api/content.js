@@ -154,6 +154,26 @@ export const contentApi = {
     const response = await apiClient.get(ENDPOINTS.CONTENT.PROCESSING_STATUS(contentId))
     return response.data
   },
+
+  /**
+   * Get quiz by content ID (auto-creates if missing)
+   * @param {number} contentId - Content ID
+   * @returns {Promise<Object>} Quiz with questions
+   */
+  async getQuiz(contentId) {
+    const response = await apiClient.get(ENDPOINTS.QUIZ.BY_CONTENT_ID(contentId))
+    return response.data
+  },
+
+  /**
+   * Get quiz by quiz ID
+   * @param {number} quizId - Quiz ID
+   * @returns {Promise<Object>} Quiz with questions
+   */
+  async getQuizById(quizId) {
+    const response = await apiClient.get(ENDPOINTS.QUIZ.BY_ID(quizId))
+    return response.data
+  },
 }
 
 export default contentApi
