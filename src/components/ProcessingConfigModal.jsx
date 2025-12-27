@@ -4,7 +4,7 @@ import { storage } from '../utils/storage'
 import './ProcessingConfigModal.css'
 
 const DEFAULT_CONFIG = {
-  model: 'gpt-4',
+  model: 'gpt-5.2',
   apiKey: '',
   summaryPrompt: `You are an expert at summarizing educational content. Please provide a clear, concise summary of the following content.
 

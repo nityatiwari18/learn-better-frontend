@@ -193,8 +193,9 @@
   display: block;
 }
 
-/* Done Button */
-.done-btn {
+/* Done Button & Start Quiz Button */
+.done-btn,
+.start-quiz-btn {
   width: 100%;
   background: var(--color-accent);
   color: var(--color-bg);
@@ -208,7 +209,8 @@
   box-shadow: 0 4px 16px var(--color-accent-glow);
 }
 
-.done-btn:hover {
+.done-btn:hover,
+.start-quiz-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 24px var(--color-accent-glow);
 }
