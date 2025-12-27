@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { contentApi } from '../api/content'
 import { validateAnswer } from '../utils/quizValidator'
 import ObjectiveQuestion from './quiz/ObjectiveQuestion'
@@ -14,7 +15,8 @@ const QUIZ_STATES = {
   LOADING: 'loading',
   ACTIVE: 'active',
   COMPLETED: 'completed',
-  ERROR: 'error'
+  ERROR: 'error',
+  BLANK: 'blank' // Blank overlay state when restoring from URL
 }
 
 // Flag to use test data instead of API
@@ -63,7 +65,12 @@ const MOCK_QUIZ_RESPONSE = {
 }
 
 function QuizPopup({ contentId, url, config, onClose }) {
-  const [state, setState] = useState(QUIZ_STATES.LOADING)
+  const [searchParams, setSearchParams] = useSearchParams()
+  // Check if we're restoring from URL - if so, start with LOADING state (rendered as blank overlay)
+  const urlQuizId = searchParams.get('quizId')
+  const isRestoringFromUrl = urlQuizId && !contentId
+  const initialState = QUIZ_STATES.LOADING
+  const [state, setState] = useState(initialState)
   const [quiz, setQuiz] = useState(null)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [userAnswers, setUserAnswers] = useState([])
@@ -75,6 +82,8 @@ function QuizPopup({ contentId, url, config, onClose }) {
   const [loadingMoreQuestions, setLoadingMoreQuestions] = useState(false)
   const [showHintModal, setShowHintModal] = useState(false)
   const progressRef = useRef(null)
+  const urlRestoredRef = useRef(false) // Track if we've restored from URL
+  const lastUrlParamsRef = useRef({ quizId: null, questionIndex: null }) // Track last processed URL params
 
   // Add/remove body class when hint modal opens/closes for z-index override
   useEffect(() => {
@@ -92,22 +101,80 @@ function QuizPopup({ contentId, url, config, onClose }) {
   const isFetchingRef = useRef(false) // Prevent multiple simultaneous fetches
   const hasInitializedRef = useRef(false) // Track if quiz has been loaded
 
-  // Fetch quiz on mount or contentId/url change
+  // Check URL params on mount and restore state if needed
   useEffect(() => {
-    console.log('QuizPopup effect triggered, contentId:', contentId, 'url:', url)
+    const urlQuizId = searchParams.get('quizId')
+    const urlQuestionIndex = searchParams.get('questionIndex')
     
-    // Reset initialization flag when contentId changes
-    hasInitializedRef.current = false
+    // ALWAYS prioritize URL params over props - if quizId is in URL, use it
+    if (urlQuizId && !urlRestoredRef.current) {
+      urlRestoredRef.current = true
+      const questionIndex = parseInt(urlQuestionIndex || '0', 10)
+      
+      console.log('Restoring quiz from URL - quizId:', urlQuizId, 'questionIndex:', questionIndex)
+      
+      // Fetch quiz by ID - this will skip the loading state if quiz is already loaded
+      fetchQuizById(urlQuizId, questionIndex)
+      return
+    }
     
-    // Only fetch if not already fetching
-    if (!isFetchingRef.current) {
+    // Only use props-based fetching if there's NO quizId in URL AND contentId is provided
+    if (!urlQuizId && contentId && !isFetchingRef.current) {
+      console.log('QuizPopup effect triggered, contentId:', contentId, 'url:', url)
+      
+      // Reset initialization flag when contentId changes
+      hasInitializedRef.current = false
+      
+      // Fetch quiz by contentId (normal flow when opened from ProcessingPopup)
       fetchQuiz()
     }
     
     return () => {
       console.log('QuizPopup effect cleanup')
     }
-  }, [contentId, url, config])
+  }, [contentId, url, config, searchParams])
+
+  // Handle URL changes (browser back/forward)
+  useEffect(() => {
+    const urlQuizId = searchParams.get('quizId')
+    const urlQuestionIndex = searchParams.get('questionIndex')
+    
+    // Check if URL params actually changed
+    const paramsChanged = 
+      urlQuizId !== lastUrlParamsRef.current.quizId || 
+      urlQuestionIndex !== lastUrlParamsRef.current.questionIndex
+    
+    // Only handle URL changes if quiz is already loaded, we've restored from URL, and params changed
+    if (urlQuizId && quiz && urlRestoredRef.current && state === QUIZ_STATES.ACTIVE && paramsChanged) {
+      const questionIndex = parseInt(urlQuestionIndex || '0', 10)
+      
+      // Update last processed params
+      lastUrlParamsRef.current = { quizId: urlQuizId, questionIndex: urlQuestionIndex }
+      
+      // Validate questionIndex is within bounds
+      if (questionIndex >= 0 && questionIndex < (quiz.questions?.length || 0)) {
+        // Only update if different from current index
+        if (questionIndex !== currentIndex) {
+          console.log('URL changed, updating question index to:', questionIndex)
+          setCurrentIndex(questionIndex)
+          setCurrentAnswer(null)
+          setShowFeedback(false)
+          setIsCorrect(false)
+          setShowHintModal(false)
+        }
+      } else if (quiz.questions?.length > 0) {
+        // Question index out of bounds, reset to valid index
+        const validIndex = Math.max(0, Math.min(questionIndex, quiz.questions.length - 1))
+        console.log('Question index out of bounds, resetting to:', validIndex)
+        setSearchParams({ quizId: urlQuizId, questionIndex: validIndex.toString() }, { replace: true })
+        setCurrentIndex(validIndex)
+        lastUrlParamsRef.current = { quizId: urlQuizId, questionIndex: validIndex.toString() }
+      }
+    } else if (urlQuizId && urlQuestionIndex) {
+      // Update ref even if we don't process (to track current state)
+      lastUrlParamsRef.current = { quizId: urlQuizId, questionIndex: urlQuestionIndex }
+    }
+  }, [searchParams, quiz, state, currentIndex])
 
   // Simulated loading progress
   useEffect(() => {
@@ -130,6 +197,71 @@ function QuizPopup({ contentId, url, config, onClose }) {
       }
     }
   }, [state])
+
+  // Fetch quiz by ID (for URL restoration)
+  const fetchQuizById = async (quizId, questionIndex = 0) => {
+    if (isFetchingRef.current) {
+      console.log('Already fetching quiz, skipping duplicate call')
+      return
+    }
+    
+    try {
+      isFetchingRef.current = true
+      console.log('Starting quiz fetch by ID:', quizId)
+      
+      // Clear any existing polling before starting new fetch
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current)
+        pollIntervalRef.current = null
+      }
+      
+      // When restoring from URL, don't show "Generating Quiz" - just keep state as is
+      // We'll set it to ACTIVE once quiz loads. This prevents the misleading loading message.
+      // Don't set state to LOADING when restoring from URL
+      
+      const response = await contentApi.getQuizById(quizId)
+      
+      console.log('Quiz fetch by ID completed, got', response.quiz.questions?.length, 'questions')
+      
+      // Validate questionIndex is within bounds
+      const validIndex = Math.max(0, Math.min(questionIndex, (response.quiz.questions?.length || 1) - 1))
+      
+      // Set quiz data and go directly to ACTIVE state (no loading screen)
+      setQuiz(response.quiz)
+      setUserAnswers(Array(response.quiz.questions?.length || 10).fill(null))
+      setCurrentIndex(validIndex)
+      setState(QUIZ_STATES.ACTIVE)
+      
+      // Track initial question count
+      questionCountRef.current = response.quiz.questions?.length || 0
+      hasInitializedRef.current = true
+      isFetchingRef.current = false
+      
+      // Update URL with correct questionIndex if it was out of bounds
+      if (validIndex !== questionIndex) {
+        setSearchParams({ quizId: quizId.toString(), questionIndex: validIndex.toString() }, { replace: true })
+        lastUrlParamsRef.current = { quizId: quizId.toString(), questionIndex: validIndex.toString() }
+      } else {
+        lastUrlParamsRef.current = { quizId: quizId.toString(), questionIndex: validIndex.toString() }
+      }
+      
+      // If we got less than 10 questions, start polling immediately
+      if (response.quiz.questions?.length < 10) {
+        console.log(`Initial load: ${response.quiz.questions?.length} questions, starting polling...`)
+        setLoadingMoreQuestions(true)
+        startPollingForAdditionalQuestions()
+      } else {
+        console.log(`Initial load: ${response.quiz.questions?.length} questions, no polling needed`)
+      }
+    } catch (err) {
+      console.error('Failed to fetch quiz by ID:', err)
+      setState(QUIZ_STATES.ERROR)
+      setError(err.response?.data?.message || 'Failed to load quiz. Please try again.')
+      isFetchingRef.current = false
+      // Remove invalid quizId from URL
+      setSearchParams({}, { replace: true })
+    }
+  }
 
   const fetchQuiz = async () => {
     // Prevent multiple simultaneous fetches
@@ -177,6 +309,12 @@ function QuizPopup({ contentId, url, config, onClose }) {
         questionCountRef.current = response.quiz.questions?.length || 0
         hasInitializedRef.current = true
         isFetchingRef.current = false
+        
+        // Update URL with quizId and questionIndex=0 when quiz is first loaded
+        if (response.quiz.id) {
+          setSearchParams({ quizId: response.quiz.id.toString(), questionIndex: '0' }, { replace: true })
+          lastUrlParamsRef.current = { quizId: response.quiz.id.toString(), questionIndex: '0' }
+        }
         
         // If we got less than 10 questions, start polling immediately
         if (response.quiz.questions?.length < 10) {
@@ -247,6 +385,17 @@ function QuizPopup({ contentId, url, config, onClose }) {
             }
             return newAnswers
           })
+          
+          // Update URL if questionIndex is out of bounds after new questions added
+          const urlQuestionIndex = parseInt(searchParams.get('questionIndex') || '0', 10)
+          if (response.quiz.id && urlQuestionIndex >= newCount) {
+            const validIndex = Math.max(0, newCount - 1)
+            setSearchParams({ quizId: response.quiz.id.toString(), questionIndex: validIndex.toString() }, { replace: true })
+            lastUrlParamsRef.current = { quizId: response.quiz.id.toString(), questionIndex: validIndex.toString() }
+            if (currentIndex >= newCount) {
+              setCurrentIndex(validIndex)
+            }
+          }
           
           // If we have all 10 questions, stop polling
           if (newCount >= 10) {
@@ -324,11 +473,18 @@ function QuizPopup({ contentId, url, config, onClose }) {
   const handleNext = () => {
     if (currentIndex < quiz.questions.length - 1) {
       // Move to next question
-      setCurrentIndex(currentIndex + 1)
+      const newIndex = currentIndex + 1
+      setCurrentIndex(newIndex)
       setCurrentAnswer(null)
       setShowFeedback(false)
       setIsCorrect(false)
       setShowHintModal(false) // Close hint modal when moving to next question
+      
+      // Update URL with new questionIndex
+      if (quiz.id) {
+        setSearchParams({ quizId: quiz.id.toString(), questionIndex: newIndex.toString() }, { replace: true })
+        lastUrlParamsRef.current = { quizId: quiz.id.toString(), questionIndex: newIndex.toString() }
+      }
     } else if (loadingMoreQuestions) {
       // More questions are being generated, wait for them
       console.log('Waiting for more questions to load...')
@@ -343,7 +499,22 @@ function QuizPopup({ contentId, url, config, onClose }) {
     // Reset state for retry
     hasInitializedRef.current = false
     isFetchingRef.current = false
+    urlRestoredRef.current = false
     fetchQuiz()
+  }
+
+  const handleClose = () => {
+    // Remove quiz search params from URL when closing
+    const urlQuizId = searchParams.get('quizId')
+    if (urlQuizId) {
+      setSearchParams({}, { replace: true })
+      lastUrlParamsRef.current = { quizId: null, questionIndex: null }
+    }
+    // Reset URL restoration flag
+    urlRestoredRef.current = false
+    if (onClose) {
+      onClose()
+    }
   }
 
   const renderQuestion = () => {
@@ -381,27 +552,40 @@ function QuizPopup({ contentId, url, config, onClose }) {
     }
   }
 
+  // Check if we're in loading state and restoring from URL (should show blank overlay)
+  const isRestoringFromUrlLoading = state === QUIZ_STATES.LOADING && (urlRestoredRef.current || searchParams.get('quizId'))
+
   return (
-    <div className="quiz-popup-overlay">
-      <div className={`quiz-popup ${state}`}>
+    <div className={`quiz-popup-overlay ${isRestoringFromUrlLoading ? 'quiz-blank-mode' : ''}`}>
+      <div className={`quiz-popup ${state} ${isRestoringFromUrlLoading ? 'blank-overlay' : ''}`}>
         {/* Loading State */}
         {state === QUIZ_STATES.LOADING && (
-          <div className="quiz-loading">
-            <div className="quiz-loading-header">
-              <div className="quiz-loading-spinner"></div>
-              <h2 className="quiz-loading-title">Generating Quiz</h2>
-              <p className="quiz-loading-subtitle">Creating personalized questions from your content...</p>
-            </div>
-            
-            <div className="progress-container">
-              <div className="progress-bar">
-                <div 
-                  className="progress-fill" 
-                  style={{ width: `${loadingProgress}%` }}
-                ></div>
-              </div>
-              <span className="progress-text">{Math.round(loadingProgress)}%</span>
-            </div>
+          <div className={`quiz-loading ${isRestoringFromUrlLoading ? 'blank-mode' : ''}`}>
+            {isRestoringFromUrlLoading ? (
+              // Blank overlay when restoring from URL - no content visible
+              <div className="quiz-blank-overlay"></div>
+            ) : (
+              // Normal loading state with spinner and progress
+              <>
+                <div className="quiz-loading-header">
+                  <div className="quiz-loading-spinner"></div>
+                  <h2 className="quiz-loading-title">Generating Quiz</h2>
+                  <p className="quiz-loading-subtitle">
+                    Creating personalized questions from your content...
+                  </p>
+                </div>
+                
+                <div className="progress-container">
+                  <div className="progress-bar">
+                    <div 
+                      className="progress-fill" 
+                      style={{ width: `${loadingProgress}%` }}
+                    ></div>
+                  </div>
+                  <span className="progress-text">{Math.round(loadingProgress)}%</span>
+                </div>
+              </>
+            )}
           </div>
         )}
 
@@ -409,7 +593,7 @@ function QuizPopup({ contentId, url, config, onClose }) {
         {state === QUIZ_STATES.ACTIVE && quiz && (
           <>
             <div className="quiz-header">
-              <button className="quiz-close-btn" onClick={onClose}>×</button>
+              <button className="quiz-close-btn" onClick={handleClose}>×</button>
               <div className="quiz-progress-info">
                 Question {currentIndex + 1} of {quiz.questions?.length || 10}
                 {loadingMoreQuestions && (
@@ -457,7 +641,7 @@ function QuizPopup({ contentId, url, config, onClose }) {
           <QuizScore
             quiz={quiz}
             userAnswers={userAnswers}
-            onClose={onClose}
+            onClose={handleClose}
           />
         )}
 
@@ -471,7 +655,7 @@ function QuizPopup({ contentId, url, config, onClose }) {
               <button className="quiz-retry-btn" onClick={handleRetry}>
                 Retry
               </button>
-              <button className="quiz-cancel-btn" onClick={onClose}>
+              <button className="quiz-cancel-btn" onClick={handleClose}>
                 Close
               </button>
             </div>
