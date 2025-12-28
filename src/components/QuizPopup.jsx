@@ -125,7 +125,7 @@ function QuizPopup({ contentId, url, config, onClose }) {
       // Reset initialization flag when contentId changes
       hasInitializedRef.current = false
       
-      // Fetch quiz by contentId (normal flow when opened from ProcessingPopup)
+      // Fetch quiz by contentId (normal flow when opened from ContentSummary)
       fetchQuiz()
     }
     

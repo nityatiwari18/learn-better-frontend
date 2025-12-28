@@ -1,9 +1,8 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Modal from './Modal'
 import { contentApi } from '../api/content'
 import { storage } from '../utils/storage'
-import ProcessingPopup from './ProcessingPopup'
-import ProcessingConfigModal from './ProcessingConfigModal'
 import './UploadModal.css'
 
 // Maximum file size: 1 MB
@@ -38,6 +37,7 @@ function ContentFrame({ icon, title, description, children }) {
 }
 
 function UploadModal({ isOpen, onClose, onUploadSuccess }) {
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('url')
   const [url, setUrl] = useState('')
   const [file, setFile] = useState(null)
@@ -46,21 +46,13 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [showErrorPopup, setShowErrorPopup] = useState(false)
-  const [showProcessing, setShowProcessing] = useState(false)
-  const [processingContentId, setProcessingContentId] = useState(null)
-  const [processingKey, setProcessingKey] = useState(0)
-  const [showConfigModal, setShowConfigModal] = useState(false)
-  const [processingConfig, setProcessingConfig] = useState(null)
-  const [pendingUpload, setPendingUpload] = useState(null)
-  const [processingUrl, setProcessingUrl] = useState(null)
-  const [cachedProcessingData, setCachedProcessingData] = useState(null)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     setShowErrorPopup(false)
 
-    // Validate input before showing config modal
+    // Validate input
     let hasValidInput = false
     if (activeTab === 'url' && url.trim()) {
       hasValidInput = true
@@ -76,38 +68,26 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
       return
     }
 
-    // Store what we're about to upload
-    setPendingUpload({ activeTab, url, file, text })
-    
-    // Show config modal
-    setShowConfigModal(true)
-  }
-
-  const handleConfigSubmit = async (config) => {
-    setProcessingConfig(config)
-    setShowConfigModal(false)
     setIsLoading(true)
 
     try {
       // Check cache for URL uploads
-      if (pendingUpload.activeTab === 'url' && pendingUpload.url.trim()) {
-        const cachedData = storage.getContentCache(pendingUpload.url.trim(), config)
+      if (activeTab === 'url' && url.trim()) {
+        const cachedData = storage.getContentCache(url.trim(), null)
         // Only use cache if it has summary or key_concepts (processing results)
         if (cachedData && (cachedData.summary || (cachedData.key_concepts && cachedData.key_concepts.length > 0))) {
-          console.log('Cache hit for URL:', pendingUpload.url.trim(), 'with config hash')
+          console.log('Cache hit for URL:', url.trim())
           // Use cached data - we still need to upload to get content ID, but skip processing
           try {
-            const response = await contentApi.uploadWeblink(pendingUpload.url.trim())
+            const response = await contentApi.uploadWeblink(url.trim())
             if (response && response.content && response.content.id) {
-              // Store URL for ProcessingPopup to use for caching quiz later
-              setProcessingContentId(response.content.id)
-              setProcessingUrl(pendingUpload.url.trim())
-              // Pass cached data to ProcessingPopup (remove url from cachedData if it exists)
+              // Navigate to ContentSummary with cached data
               const { url: _, ...cacheData } = cachedData
-              setCachedProcessingData(cacheData)
-              setShowProcessing(true)
+              onClose() // Close modal first
+              navigate(`/content/${response.content.id}`, {
+                state: { url: url.trim(), cachedData: cacheData }
+              })
               setIsLoading(false)
-              setPendingUpload(null)
               return
             }
           } catch (uploadErr) {
@@ -118,45 +98,46 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
       }
 
       let response
-      if (pendingUpload.activeTab === 'url' && pendingUpload.url.trim()) {
-        response = await contentApi.uploadWeblink(pendingUpload.url.trim())
-      } else if (pendingUpload.activeTab === 'pdf' && pendingUpload.file) {
-        response = await contentApi.uploadFile(pendingUpload.file, 'document')
-      } else if (pendingUpload.activeTab === 'text' && pendingUpload.text.trim()) {
-        response = await contentApi.uploadText(pendingUpload.text.trim())
+      if (activeTab === 'url' && url.trim()) {
+        response = await contentApi.uploadWeblink(url.trim())
+      } else if (activeTab === 'pdf' && file) {
+        response = await contentApi.uploadFile(file, 'document')
+      } else if (activeTab === 'text' && text.trim()) {
+        response = await contentApi.uploadText(text.trim())
       }
 
       console.log('Upload response received:', response)
 
       if (response && response.content) {
         console.log('Content exists, ID:', response.content.id)
-        // Trigger processing with config for the uploaded content
+        // Trigger processing without config (backend will use backendConfig)
         try {
           if (!response.content.id) {
             console.error('Content ID is missing or falsy!')
             throw new Error('Content ID missing from response')
           }
           console.log('Triggering processing for content ID:', response.content.id)
-          await contentApi.triggerProcessing(response.content.id, config)
-          console.log('Processing triggered successfully, showing popup')
-          // Show processing popup
-          // Store URL for caching later if it's a URL upload
-          if (pendingUpload.activeTab === 'url' && pendingUpload.url.trim()) {
-            setProcessingUrl(pendingUpload.url.trim())
+          await contentApi.triggerProcessing(response.content.id, null)
+          console.log('Processing triggered successfully, navigating to ContentSummary')
+          // Navigate to ContentSummary page
+          onClose() // Close modal first
+          const state = {}
+          if (activeTab === 'url' && url.trim()) {
+            state.url = url.trim()
           }
-          setProcessingContentId(response.content.id)
-          setShowProcessing(true)
+          navigate(`/content/${response.content.id}`, { state })
         } catch (processingErr) {
           // Log failure
           console.error('Failed to trigger processing:', processingErr)
-          // Still try to show processing popup if ID exists, otherwise error
+          // Still try to navigate to ContentSummary if ID exists, otherwise error
           if (response.content.id) {
-            console.log('Showing popup despite error')
-            if (pendingUpload.activeTab === 'url' && pendingUpload.url.trim()) {
-              setProcessingUrl(pendingUpload.url.trim())
+            console.log('Navigating to ContentSummary despite error')
+            onClose() // Close modal first
+            const state = {}
+            if (activeTab === 'url' && url.trim()) {
+              state.url = url.trim()
             }
-            setProcessingContentId(response.content.id)
-            setShowProcessing(true)
+            navigate(`/content/${response.content.id}`, { state })
           } else {
             console.error('No ID available, showing error popup')
             setError('Upload successful but failed to start processing')
@@ -172,42 +153,9 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
       setShowErrorPopup(true)
     } finally {
       setIsLoading(false)
-      setPendingUpload(null)
     }
   }
 
-  const handleProcessingComplete = () => {
-    // Reset form
-    setUrl('')
-    setFile(null)
-    setText('')
-    setActiveTab('url')
-    setShowProcessing(false)
-    setProcessingContentId(null)
-    setProcessingUrl(null)
-    setCachedProcessingData(null)
-    setProcessingKey(prev => prev + 1)  // Increment key to force remount next time
-
-    // Notify parent and close
-    if (onUploadSuccess) {
-      onUploadSuccess()
-    }
-    onClose()
-  }
-
-  const handleProcessingClose = () => {
-    setShowProcessing(false)
-    setProcessingContentId(null)
-    setProcessingUrl(null)
-    setCachedProcessingData(null)
-    setProcessingKey(prev => prev + 1)  // Increment key to force remount next time
-    // Reset form
-    setUrl('')
-    setFile(null)
-    setText('')
-    setActiveTab('url')
-    onClose()
-  }
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files?.[0]
@@ -249,10 +197,6 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
     setActiveTab('url')
     setError('')
     setShowErrorPopup(false)
-    setShowProcessing(false)
-    setProcessingContentId(null)
-    setProcessingUrl(null)
-    setCachedProcessingData(null)
     onClose()
   }
 
@@ -293,21 +237,6 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
     (activeTab === 'text' && text.trim())
   )
 
-      // Show processing popup if processing
-  if (showProcessing && processingContentId) {
-    return (
-      <ProcessingPopup
-        key={processingKey}
-        contentId={processingContentId}
-        url={processingUrl}
-        config={processingConfig}
-        cachedData={cachedProcessingData}
-        onClose={handleProcessingClose}
-        onComplete={handleProcessingComplete}
-      />
-    )
-  }
-
   return (
     <Modal isOpen={isOpen} onClose={handleClose} fullWidth>
       <div className="upload-modal">
@@ -316,7 +245,7 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
         )}
 
         <div className="upload-header">
-          <h2 className="upload-title">Add Your First Article</h2>
+          <h2 className="upload-title">Add New Content</h2>
           <p className="upload-subtitle">Choose how you want to add content</p>
         </div>
 
@@ -387,16 +316,6 @@ function UploadModal({ isOpen, onClose, onUploadSuccess }) {
           </button>
         </form>
       </div>
-
-      {/* Processing Config Modal */}
-      <ProcessingConfigModal
-        isOpen={showConfigModal}
-        onClose={() => {
-          setShowConfigModal(false)
-          setPendingUpload(null)
-        }}
-        onSubmit={handleConfigSubmit}
-      />
     </Modal>
   )
 }
