@@ -20,6 +20,7 @@ function ContentSummary({ onLogout }) {
   
   const [state, setState] = useState(locationCachedData ? PROCESSING_STATES.COMPLETED : PROCESSING_STATES.PROCESSING)
   const [progress, setProgress] = useState(locationCachedData ? 100 : 0)
+  const [title, setTitle] = useState(locationCachedData?.title || '')
   const [summary, setSummary] = useState(locationCachedData?.summary || null)
   const [keyConcepts, setKeyConcepts] = useState(locationCachedData?.key_concepts || [])
   const [error, setError] = useState('')
@@ -73,6 +74,11 @@ function ContentSummary({ onLogout }) {
           setProgress(100)
           setState(PROCESSING_STATES.COMPLETED)
           
+          // Set title
+          if (status.title) {
+            setTitle(status.title)
+          }
+          
           // Set results
           let summaryText = null
           let concepts = []
@@ -90,6 +96,7 @@ function ContentSummary({ onLogout }) {
             const existingCache = storage.getContentCache(locationUrl, null) || {}
             storage.setContentCache(locationUrl, {
               ...existingCache,
+              title: status.title || '',
               summary: summaryText,
               key_concepts: concepts
             }, null)
@@ -188,8 +195,8 @@ function ContentSummary({ onLogout }) {
           {state === PROCESSING_STATES.COMPLETED && (
             <>
               <div className="completed-header">
-                <div className="completed-icon">✓</div>
-                <h2 className="completed-title">Content Processed!</h2>
+                <h2 className="completed-title">{title || 'Content Processed!'}</h2>
+                <p className="completed-subtitle">Review the summary and key concepts to track</p>
               </div>
 
               {summary && (
@@ -206,6 +213,9 @@ function ContentSummary({ onLogout }) {
                     {keyConcepts.map((concept, index) => (
                       <div key={index} className="concept-card">
                         <span className="concept-name">{concept.concept_name}</span>
+                        {concept.subtitle && (
+                          <span className="concept-subtitle">{concept.subtitle}</span>
+                        )}
                       </div>
                     ))}
                   </div>
