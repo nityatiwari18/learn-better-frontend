@@ -1,5 +1,5 @@
 .upload-modal {
-  padding: var(--space-xl) 10%;
+  padding: var(--space-lg) 10% var(--space-xl) 10%;
   width: 100%;
   min-height: 100vh;
   box-sizing: border-box;

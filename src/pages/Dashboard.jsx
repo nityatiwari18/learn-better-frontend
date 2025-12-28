@@ -5,7 +5,7 @@ import { contentApi } from '../api/content'
 import ContentCard from '../components/ContentCard'
 import './Dashboard.css'
 
-function Dashboard({ onLogout }) {
+function Dashboard() {
   const navigate = useNavigate()
   const location = useLocation()
   const [contentList, setContentList] = useState([])
@@ -31,14 +31,6 @@ function Dashboard({ onLogout }) {
     fetchContent()
   }, [fetchContent, location.pathname])
 
-
-  const handleLogout = () => {
-    storage.clearAuth()
-    if (onLogout) {
-      onLogout()
-    }
-  }
-
   // Handle content deletion
   const handleDelete = (contentId) => {
     setContentList(prev => prev.filter(c => c.id !== contentId))
@@ -48,13 +40,6 @@ function Dashboard({ onLogout }) {
 
   return (
     <div className="dashboard">
-      <header className="dashboard-header">
-        <div className="dashboard-logo">◈ Learn Better</div>
-        <button className="logout-btn" onClick={handleLogout}>
-          Logout
-        </button>
-      </header>
-
       <main className="dashboard-main">
         <div className="welcome-section">
           <h1 className="welcome-title">
