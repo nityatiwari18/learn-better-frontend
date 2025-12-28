@@ -5,6 +5,7 @@ import About from './pages/About'
 import Dashboard from './pages/Dashboard'
 import Upload from './pages/Upload'
 import ContentSummary from './pages/ContentSummary'
+import QuizScreen from './components/QuizScreen'
 import Layout from './components/Layout'
 import AuthModal from './components/AuthModal'
 import { storage } from './utils/storage'
@@ -60,6 +61,8 @@ function App() {
           <Route path="/home" element={<Dashboard onLogout={handleLogout} />} />
           <Route path="/upload" element={<Upload />} />
           <Route path="/content/:contentId" element={<ContentSummary onLogout={handleLogout} />} />
+          <Route path="/quiz/:quizId" element={<QuizScreen onLogout={handleLogout} />} />
+          <Route path="/quiz" element={<QuizScreen onLogout={handleLogout} />} />
           <Route path="/" element={<Navigate to="/home" replace />} />
         </Routes>
         {showSuccessToast && (
