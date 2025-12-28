@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useLocation, useNavigate } from 'react-router-dom'
 import { contentApi } from '../api/content'
 import { storage } from '../utils/storage'
-import QuizPopup from '../components/QuizPopup'
+import LoadingWithProgress from '../components/LoadingWithProgress'
 import './ContentSummary.css'
 
 const PROCESSING_STATES = {
@@ -24,8 +24,6 @@ function ContentSummary({ onLogout }) {
   const [summary, setSummary] = useState(locationCachedData?.summary || null)
   const [keyConcepts, setKeyConcepts] = useState(locationCachedData?.key_concepts || [])
   const [error, setError] = useState('')
-  const [showQuiz, setShowQuiz] = useState(false)
-  const [quizKey, setQuizKey] = useState(0)
   const [hoveredConceptId, setHoveredConceptId] = useState(null)
   const pollingRef = useRef(null)
   const progressRef = useRef(null)
@@ -201,6 +199,22 @@ function ContentSummary({ onLogout }) {
     }
   }
 
+  const handleStartQuiz = () => {
+    if (!contentId) return
+    
+    // Get config from storage
+    const config = storage.getProcessingConfig()
+    
+    // Navigate immediately - QuizScreen will handle API call and show "Generating Quiz"
+    // Pass URL and config in location state for cache optimization
+    navigate(`/quiz?contentId=${contentId}&questionIndex=0`, {
+      state: {
+        url: locationUrl,
+        config: config
+      }
+    })
+  }
+
   return (
     <div className="content-summary">
       <header className="content-summary-header">
@@ -214,23 +228,11 @@ function ContentSummary({ onLogout }) {
         <div className={`content-summary-container ${state}`}>
           {/* Processing State */}
           {state === PROCESSING_STATES.PROCESSING && (
-            <>
-              <div className="processing-header">
-                <div className="processing-spinner"></div>
-                <h2 className="processing-title">Processing Content</h2>
-                <p className="processing-subtitle">Generating summary and extracting key concepts...</p>
-              </div>
-              
-              <div className="progress-container">
-                <div className="progress-bar">
-                  <div 
-                    className="progress-fill" 
-                    style={{ width: `${progress}%` }}
-                  ></div>
-                </div>
-                <span className="progress-text">{Math.round(progress)}%</span>
-              </div>
-            </>
+            <LoadingWithProgress
+              title="Processing Content"
+              subtitle="Generating summary and extracting key concepts..."
+              progress={progress}
+            />
           )}
 
           {/* Completed State */}
@@ -284,7 +286,10 @@ function ContentSummary({ onLogout }) {
                 </div>
               )}
 
-              <button className="start-quiz-btn" onClick={() => setShowQuiz(true)}>
+              <button 
+                className="start-quiz-btn" 
+                onClick={handleStartQuiz}
+              >
                 Start Quiz
               </button>
             </>
@@ -311,21 +316,6 @@ function ContentSummary({ onLogout }) {
           )}
         </div>
       </main>
-
-      {/* Quiz Popup */}
-      {showQuiz && (
-        <QuizPopup
-          key={quizKey}
-          contentId={contentId}
-          url={locationUrl}
-          config={null}
-          onClose={() => {
-            setShowQuiz(false)
-            setQuizKey(prev => prev + 1)  // Increment key to force remount next time
-            navigate('/home')  // Navigate back to home after quiz
-          }}
-        />
-      )}
     </div>
   )
 }

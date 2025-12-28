@@ -1,22 +1,15 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { useSearchParams, useNavigate, useLocation } from 'react-router-dom'
+import { useState, useEffect, useCallback } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { storage } from '../utils/storage'
 import { contentApi } from '../api/content'
 import ContentCard from '../components/ContentCard'
-import QuizPopup from '../components/QuizPopup'
 import './Dashboard.css'
 
 function Dashboard({ onLogout }) {
   const navigate = useNavigate()
   const location = useLocation()
-  const [searchParams, setSearchParams] = useSearchParams()
   const [contentList, setContentList] = useState([])
   const [isLoading, setIsLoading] = useState(true)
-  const [showQuiz, setShowQuiz] = useState(false)
-  const [quizContentId, setQuizContentId] = useState(null)
-  const [quizUrl, setQuizUrl] = useState(null)
-  const [quizConfig, setQuizConfig] = useState(null)
-  const quizLoadingRef = useRef(false) // Prevent multiple simultaneous quiz loads
   const user = storage.getUser()
   const firstName = user?.first_name || 'User'
 
@@ -37,23 +30,6 @@ function Dashboard({ onLogout }) {
   useEffect(() => {
     fetchContent()
   }, [fetchContent, location.pathname])
-
-  // Check for quizId in URL params IMMEDIATELY (before contentList loads)
-  // This ensures QuizPopup renders immediately to cover dashboard
-  useEffect(() => {
-    const urlQuizId = searchParams.get('quizId')
-    
-    // Immediately show QuizPopup if quizId is in URL (don't wait for contentList to load)
-    if (urlQuizId && !showQuiz) {
-      const config = storage.getProcessingConfig()
-      
-      // Pass null for contentId - QuizPopup will use quizId from URL instead
-      setQuizContentId(null)
-      setQuizUrl(null)
-      setQuizConfig(config)
-      setShowQuiz(true)
-    }
-  }, [searchParams, showQuiz]) // No isLoading dependency - runs immediately
 
 
   const handleLogout = () => {
@@ -136,22 +112,6 @@ function Dashboard({ onLogout }) {
           </div>
         )}
       </main>
-
-      {/* Quiz Popup - auto-opens when quizId is in URL */}
-      {showQuiz && (
-        <QuizPopup
-          contentId={quizContentId} // null when restoring from URL, so QuizPopup uses URL params
-          url={quizUrl}
-          config={quizConfig}
-          onClose={() => {
-            setShowQuiz(false)
-            setQuizContentId(null)
-            setQuizUrl(null)
-            setQuizConfig(null)
-            // URL params will be cleaned up by QuizPopup's handleClose
-          }}
-        />
-      )}
     </div>
   )
 }
