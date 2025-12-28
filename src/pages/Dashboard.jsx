@@ -1,15 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom'
 import { storage } from '../utils/storage'
 import { contentApi } from '../api/content'
-import UploadModal from '../components/UploadModal'
 import ContentCard from '../components/ContentCard'
 import QuizPopup from '../components/QuizPopup'
 import './Dashboard.css'
 
 function Dashboard({ onLogout }) {
+  const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
-  const [isUploadOpen, setIsUploadOpen] = useState(false)
   const [contentList, setContentList] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [showQuiz, setShowQuiz] = useState(false)
@@ -33,10 +33,10 @@ function Dashboard({ onLogout }) {
     }
   }, [])
 
-  // Initial fetch
+  // Initial fetch and refetch when returning from upload page
   useEffect(() => {
     fetchContent()
-  }, [fetchContent])
+  }, [fetchContent, location.pathname])
 
   // Check for quizId in URL params IMMEDIATELY (before contentList loads)
   // This ensures QuizPopup renders immediately to cover dashboard
@@ -55,26 +55,12 @@ function Dashboard({ onLogout }) {
     }
   }, [searchParams, showQuiz]) // No isLoading dependency - runs immediately
 
-  // Prevent upload modal from opening when restoring from URL
-  useEffect(() => {
-    const urlQuizId = searchParams.get('quizId')
-    
-    // If quizId exists in URL, ensure upload modal stays closed
-    if (urlQuizId && isUploadOpen) {
-      setIsUploadOpen(false)
-    }
-  }, [searchParams, isUploadOpen])
 
   const handleLogout = () => {
     storage.clearAuth()
     if (onLogout) {
       onLogout()
     }
-  }
-
-  // Handle successful upload
-  const handleUploadSuccess = (newContent) => {
-    setContentList(prev => [newContent, ...prev])
   }
 
   // Handle content deletion
@@ -106,7 +92,7 @@ function Dashboard({ onLogout }) {
           </p>
         </div>
 
-        <button className="dashboard-upload-btn" onClick={() => setIsUploadOpen(true)}>
+        <button className="dashboard-upload-btn" onClick={() => navigate('/upload')}>
           <svg 
             width="24" 
             height="24" 
@@ -150,12 +136,6 @@ function Dashboard({ onLogout }) {
           </div>
         )}
       </main>
-
-      <UploadModal 
-        isOpen={isUploadOpen} 
-        onClose={() => setIsUploadOpen(false)}
-        onUploadSuccess={handleUploadSuccess}
-      />
 
       {/* Quiz Popup - auto-opens when quizId is in URL */}
       {showQuiz && (

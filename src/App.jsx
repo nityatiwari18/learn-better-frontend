@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import Home from './pages/Home'
 import About from './pages/About'
 import Dashboard from './pages/Dashboard'
+import Upload from './pages/Upload'
 import Layout from './components/Layout'
 import AuthModal from './components/AuthModal'
 import { storage } from './utils/storage'
@@ -48,11 +49,15 @@ function App() {
     }
   }, [])
 
-  // Render Dashboard for authenticated users
+  // Render authenticated routes for authenticated users
   if (isAuthenticated) {
     return (
       <>
-        <Dashboard onLogout={handleLogout} />
+        <Routes>
+          <Route path="/dashboard" element={<Dashboard onLogout={handleLogout} />} />
+          <Route path="/upload" element={<Upload />} />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
         {showSuccessToast && (
           <div className="logged-in-toast">
             <div className="toast-content">
