@@ -180,9 +180,8 @@
 .section-title {
   font-size: 0.875rem;
   font-weight: 600;
+  font-family: var(--font-body);
   color: var(--color-accent);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   margin: 0 0 12px 0;
 }
 
@@ -192,6 +191,7 @@
   font-size: 0.9375rem;
   line-height: 1.7;
   margin: 0;
+  text-transform: none !important;
 }
 
 /* Key Concepts Grid */
@@ -215,10 +215,12 @@
 }
 
 .concept-name {
+  font-family: var(--font-body) !important;
   font-size: 0.9375rem;
   font-weight: 600;
   color: var(--color-text);
   margin: 0 0 6px 0;
+  text-transform: none !important;
 }
 
 .concept-description {
@@ -226,6 +228,7 @@
   color: var(--color-text-muted);
   line-height: 1.5;
   margin: 0;
+  text-transform: none !important;
 }
 
 /* Processing Message */

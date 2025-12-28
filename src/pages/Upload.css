@@ -108,6 +108,7 @@
 }
 
 .content-title {
+  font-family: var(--font-body) !important;
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--color-text);
