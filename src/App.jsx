@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
-import Home from './pages/Home'
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+import Welcome from './pages/Welcome'
 import About from './pages/About'
 import Dashboard from './pages/Dashboard'
 import Upload from './pages/Upload'
+import ContentSummary from './pages/ContentSummary'
 import Layout from './components/Layout'
 import AuthModal from './components/AuthModal'
 import { storage } from './utils/storage'
 import './App.css'
 
 function App() {
+  const navigate = useNavigate()
   const [isAuthOpen, setIsAuthOpen] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(storage.isAuthenticated())
   const [showSuccessToast, setShowSuccessToast] = useState(false)
@@ -30,6 +32,7 @@ function App() {
 
   const handleLogout = () => {
     setIsAuthenticated(false)
+    navigate('/', { replace: true })
   }
 
   const handleSessionExpiredLogin = () => {
@@ -54,9 +57,10 @@ function App() {
     return (
       <>
         <Routes>
-          <Route path="/dashboard" element={<Dashboard onLogout={handleLogout} />} />
+          <Route path="/home" element={<Dashboard onLogout={handleLogout} />} />
           <Route path="/upload" element={<Upload />} />
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/content/:contentId" element={<ContentSummary onLogout={handleLogout} />} />
+          <Route path="/" element={<Navigate to="/home" replace />} />
         </Routes>
         {showSuccessToast && (
           <div className="logged-in-toast">
@@ -81,7 +85,7 @@ function App() {
     <>
       <Routes>
         <Route path="/" element={<Layout onOpenAuth={openAuth} />}>
-          <Route index element={<Home />} />
+          <Route index element={<Welcome />} />
           <Route path="about" element={<About />} />
         </Route>
       </Routes>

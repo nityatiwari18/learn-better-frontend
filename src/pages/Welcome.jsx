@@ -1,11 +1,11 @@
 import { useOutletContext } from 'react-router-dom'
-import './Home.css'
+import './Welcome.css'
 
-function Home() {
+function Welcome() {
   const { onOpenAuth } = useOutletContext()
 
   return (
-    <div className="home">
+    <div className="welcome">
       <section className="hero">
         <div className="container">
           <div className="hero-content">
@@ -70,4 +70,5 @@ function Home() {
   )
 }
 
-export default Home
+export default Welcome
+

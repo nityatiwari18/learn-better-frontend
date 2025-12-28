@@ -1,47 +1,55 @@
-/* Processing Popup Overlay */
-.processing-popup-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(8px);
+/* Content Summary Page */
+.content-summary {
+  min-height: 100vh;
   display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+}
+
+.content-summary-header {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  z-index: 10000;
-  animation: fadeIn 0.3s ease-out;
+  padding: var(--space-lg) var(--space-xl);
+  border-bottom: 1px solid var(--color-border);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.content-summary-logo {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  font-style: italic;
 }
 
-/* Processing Popup Container */
-.processing-popup {
-  background: var(--color-bg-elevated);
+.logout-btn {
+  padding: 10px 20px;
+  background: transparent;
   border: 1px solid var(--color-border);
-  border-radius: 20px;
-  padding: 40px;
-  max-width: 600px;
-  width: 90%;
-  max-height: 80vh;
-  overflow-y: auto;
-  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.2);
-  animation: slideUp 0.3s ease-out;
+  color: var(--color-text-muted);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
 }
 
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.logout-btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.content-summary-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-xl);
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.content-summary-container {
+  width: 100%;
 }
 
 /* Processing State */
@@ -193,8 +201,7 @@
   display: block;
 }
 
-/* Done Button & Start Quiz Button */
-.done-btn,
+/* Start Quiz Button */
 .start-quiz-btn {
   width: 100%;
   background: var(--color-accent);
@@ -209,7 +216,6 @@
   box-shadow: 0 4px 16px var(--color-accent-glow);
 }
 
-.done-btn:hover,
 .start-quiz-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 24px var(--color-accent-glow);
@@ -291,21 +297,12 @@
   background: rgba(239, 68, 68, 0.2);
 }
 
-/* Scrollbar Styling */
-.processing-popup::-webkit-scrollbar {
-  width: 6px;
+/* Responsive */
+@media (max-width: 600px) {
+  .processing-title,
+  .completed-title,
+  .failed-title {
+    font-size: 1.5rem;
+  }
 }
 
-.processing-popup::-webkit-scrollbar-track {
-  background: var(--color-bg-elevated);
-  border-radius: 3px;
-}
-
-.processing-popup::-webkit-scrollbar-thumb {
-  background: #dee2e6;
-  border-radius: 3px;
-}
-
-.processing-popup::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-muted);
-}
