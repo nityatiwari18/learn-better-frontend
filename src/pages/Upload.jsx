@@ -1,0 +1,388 @@
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { contentApi } from '../api/content'
+import { storage } from '../utils/storage'
+import ProcessingPopup from '../components/ProcessingPopup'
+import ProcessingConfigModal from '../components/ProcessingConfigModal'
+import './Upload.css'
+
+// Maximum file size: 1 MB
+const MAX_FILE_SIZE = 1 * 1024 * 1024
+
+// Error popup component
+function ErrorPopup({ message, onClose }) {
+  return (
+    <div className="error-popup-overlay">
+      <div className="error-popup">
+        <div className="error-popup-icon">!</div>
+        <h3 className="error-popup-title">Upload Failed</h3>
+        <p className="error-popup-message">{message}</p>
+        <button className="error-popup-btn" onClick={onClose}>
+          Try Again
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// Reusable content frame component
+function ContentFrame({ icon, title, description, children }) {
+  return (
+    <div className="content-frame">
+      <span className="content-icon">{icon}</span>
+      <h3 className="content-title">{title}</h3>
+      <p className="content-description">{description}</p>
+      {children}
+    </div>
+  )
+}
+
+function Upload() {
+  const navigate = useNavigate()
+  const [activeTab, setActiveTab] = useState('url')
+  const [url, setUrl] = useState('')
+  const [file, setFile] = useState(null)
+  const [text, setText] = useState('')
+  const [dragActive, setDragActive] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [showErrorPopup, setShowErrorPopup] = useState(false)
+  const [showProcessing, setShowProcessing] = useState(false)
+  const [processingContentId, setProcessingContentId] = useState(null)
+  const [processingKey, setProcessingKey] = useState(0)
+  const [showConfigModal, setShowConfigModal] = useState(false)
+  const [processingConfig, setProcessingConfig] = useState(null)
+  const [pendingUpload, setPendingUpload] = useState(null)
+  const [processingUrl, setProcessingUrl] = useState(null)
+  const [cachedProcessingData, setCachedProcessingData] = useState(null)
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+    setShowErrorPopup(false)
+
+    // Validate input before showing config modal
+    let hasValidInput = false
+    if (activeTab === 'url' && url.trim()) {
+      hasValidInput = true
+    } else if (activeTab === 'pdf' && file) {
+      hasValidInput = true
+    } else if (activeTab === 'text' && text.trim()) {
+      hasValidInput = true
+    }
+
+    if (!hasValidInput) {
+      setError('Please provide content to upload')
+      setShowErrorPopup(true)
+      return
+    }
+
+    // Store what we're about to upload
+    setPendingUpload({ activeTab, url, file, text })
+    
+    // Show config modal
+    setShowConfigModal(true)
+  }
+
+  const handleConfigSubmit = async (config) => {
+    setProcessingConfig(config)
+    setShowConfigModal(false)
+    setIsLoading(true)
+
+    try {
+      // Check cache for URL uploads
+      if (pendingUpload.activeTab === 'url' && pendingUpload.url.trim()) {
+        const cachedData = storage.getContentCache(pendingUpload.url.trim(), config)
+        // Only use cache if it has summary or key_concepts (processing results)
+        if (cachedData && (cachedData.summary || (cachedData.key_concepts && cachedData.key_concepts.length > 0))) {
+          console.log('Cache hit for URL:', pendingUpload.url.trim(), 'with config hash')
+          // Use cached data - we still need to upload to get content ID, but skip processing
+          try {
+            const response = await contentApi.uploadWeblink(pendingUpload.url.trim())
+            if (response && response.content && response.content.id) {
+              // Store URL for ProcessingPopup to use for caching quiz later
+              setProcessingContentId(response.content.id)
+              setProcessingUrl(pendingUpload.url.trim())
+              // Pass cached data to ProcessingPopup (remove url from cachedData if it exists)
+              const { url: _, ...cacheData } = cachedData
+              setCachedProcessingData(cacheData)
+              setShowProcessing(true)
+              setIsLoading(false)
+              setPendingUpload(null)
+              return
+            }
+          } catch (uploadErr) {
+            console.error('Failed to upload cached URL:', uploadErr)
+            // Fall through to normal processing flow
+          }
+        }
+      }
+
+      let response
+      if (pendingUpload.activeTab === 'url' && pendingUpload.url.trim()) {
+        response = await contentApi.uploadWeblink(pendingUpload.url.trim())
+      } else if (pendingUpload.activeTab === 'pdf' && pendingUpload.file) {
+        response = await contentApi.uploadFile(pendingUpload.file, 'document')
+      } else if (pendingUpload.activeTab === 'text' && pendingUpload.text.trim()) {
+        response = await contentApi.uploadText(pendingUpload.text.trim())
+      }
+
+      console.log('Upload response received:', response)
+
+      if (response && response.content) {
+        console.log('Content exists, ID:', response.content.id)
+        // Trigger processing with config for the uploaded content
+        try {
+          if (!response.content.id) {
+            console.error('Content ID is missing or falsy!')
+            throw new Error('Content ID missing from response')
+          }
+          console.log('Triggering processing for content ID:', response.content.id)
+          await contentApi.triggerProcessing(response.content.id, config)
+          console.log('Processing triggered successfully, showing popup')
+          // Show processing popup
+          // Store URL for caching later if it's a URL upload
+          if (pendingUpload.activeTab === 'url' && pendingUpload.url.trim()) {
+            setProcessingUrl(pendingUpload.url.trim())
+          }
+          setProcessingContentId(response.content.id)
+          setShowProcessing(true)
+        } catch (processingErr) {
+          // Log failure
+          console.error('Failed to trigger processing:', processingErr)
+          // Still try to show processing popup if ID exists, otherwise error
+          if (response.content.id) {
+            console.log('Showing popup despite error')
+            if (pendingUpload.activeTab === 'url' && pendingUpload.url.trim()) {
+              setProcessingUrl(pendingUpload.url.trim())
+            }
+            setProcessingContentId(response.content.id)
+            setShowProcessing(true)
+          } else {
+            console.error('No ID available, showing error popup')
+            setError('Upload successful but failed to start processing')
+            setShowErrorPopup(true)
+          }
+        }
+      } else {
+        console.error('Response structure invalid:', { response, hasContent: !!response?.content })
+      }
+    } catch (err) {
+      // Show error popup for upload failures
+      setError('Sorry, could not upload content')
+      setShowErrorPopup(true)
+    } finally {
+      setIsLoading(false)
+      setPendingUpload(null)
+    }
+  }
+
+  const handleProcessingComplete = () => {
+    // Reset form
+    setUrl('')
+    setFile(null)
+    setText('')
+    setActiveTab('url')
+    setShowProcessing(false)
+    setProcessingContentId(null)
+    setProcessingUrl(null)
+    setCachedProcessingData(null)
+    setProcessingKey(prev => prev + 1)  // Increment key to force remount next time
+
+    // Navigate back to dashboard
+    navigate('/dashboard')
+  }
+
+  const handleProcessingClose = () => {
+    setShowProcessing(false)
+    setProcessingContentId(null)
+    setProcessingUrl(null)
+    setCachedProcessingData(null)
+    setProcessingKey(prev => prev + 1)  // Increment key to force remount next time
+    // Reset form
+    setUrl('')
+    setFile(null)
+    setText('')
+    setActiveTab('url')
+    // Navigate back to dashboard
+    navigate('/dashboard')
+  }
+
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files?.[0]
+    if (selectedFile && selectedFile.type === 'application/pdf') {
+      if (selectedFile.size > MAX_FILE_SIZE) {
+        setError('File size exceeds 1 MB limit')
+        return
+      }
+      setError('')
+      setFile(selectedFile)
+    }
+  }
+
+  const handleDrag = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(e.type === 'dragenter' || e.type === 'dragover')
+  }
+
+  const handleDrop = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
+    const droppedFile = e.dataTransfer.files?.[0]
+    if (droppedFile && droppedFile.type === 'application/pdf') {
+      if (droppedFile.size > MAX_FILE_SIZE) {
+        setError('File size exceeds 1 MB limit')
+        return
+      }
+      setError('')
+      setFile(droppedFile)
+    }
+  }
+
+  const handleErrorPopupClose = () => {
+    setShowErrorPopup(false)
+    setError('')
+  }
+
+  const tabs = [
+    { id: 'url', icon: '🔗', label: 'Paste URL' },
+    { id: 'pdf', icon: '📄', label: 'Upload PDF' },
+    { id: 'text', icon: '📝', label: 'Paste Text' }
+  ]
+
+  const contentConfig = {
+    url: {
+      icon: '🔗',
+      title: 'Paste Article URL',
+      description: 'Enter the URL of any article or webpage you want to learn from'
+    },
+    pdf: {
+      icon: '📄',
+      title: file ? file.name : 'Upload PDF File',
+      description: file
+        ? `${(file.size / 1024 / 1024).toFixed(2)} MB`
+        : 'Drag and drop your PDF here or click to browse (max 1 MB)'
+    },
+    text: {
+      icon: '📝',
+      title: 'Paste Text Content',
+      description: 'Paste any text content you want to learn from'
+    }
+  }
+
+  const canSubmit = !isLoading && (
+    (activeTab === 'url' && url.trim()) ||
+    (activeTab === 'pdf' && file) ||
+    (activeTab === 'text' && text.trim())
+  )
+
+  // Show processing popup if processing
+  if (showProcessing && processingContentId) {
+    return (
+      <ProcessingPopup
+        key={processingKey}
+        contentId={processingContentId}
+        url={processingUrl}
+        config={processingConfig}
+        cachedData={cachedProcessingData}
+        onClose={handleProcessingClose}
+        onComplete={handleProcessingComplete}
+      />
+    )
+  }
+
+  return (
+    <div className="upload-page">
+      {showErrorPopup && (
+        <ErrorPopup message={error} onClose={handleErrorPopupClose} />
+      )}
+
+      <div className="upload-header">
+        <h2 className="upload-title">Add New Content</h2>
+        <p className="upload-subtitle">Choose how you want to add content</p>
+      </div>
+
+      <div className="upload-tabs">
+        {tabs.map(tab => (
+          <button
+            key={tab.id}
+            className={`upload-tab ${activeTab === tab.id ? 'active' : ''}`}
+            onClick={() => setActiveTab(tab.id)}
+          >
+            <span className="tab-icon">{tab.icon}</span>
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      <form onSubmit={handleSubmit} className="upload-content">
+        <ContentFrame {...contentConfig[activeTab]}>
+          {activeTab === 'url' && (
+            <input
+              type="url"
+              className="content-input"
+              placeholder="https://example.com/article"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              disabled={isLoading}
+              required
+            />
+          )}
+          {activeTab === 'pdf' && (
+            <div
+              className={`drop-zone ${dragActive ? 'drag-active' : ''} ${file ? 'has-file' : ''}`}
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
+            >
+              <input
+                type="file"
+                accept=".pdf,application/pdf"
+                onChange={handleFileChange}
+                className="file-input"
+                id="pdf-upload"
+                disabled={isLoading}
+              />
+              {!file && (
+                <label htmlFor="pdf-upload" className="browse-btn">
+                  Browse Files
+                </label>
+              )}
+              {file && <span className="file-check">✓</span>}
+            </div>
+          )}
+          {activeTab === 'text' && (
+            <textarea
+              className="content-textarea"
+              placeholder="Paste your text content here..."
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              disabled={isLoading}
+              rows={8}
+            />
+          )}
+        </ContentFrame>
+
+        <button type="submit" className="submit-btn" disabled={!canSubmit}>
+          {isLoading ? 'Uploading...' : `↑ Upload ${activeTab === 'url' ? 'Article' : activeTab === 'pdf' ? 'PDF' : 'Text'}`}
+        </button>
+      </form>
+
+      {/* Processing Config Modal */}
+      <ProcessingConfigModal
+        isOpen={showConfigModal}
+        onClose={() => {
+          setShowConfigModal(false)
+          setPendingUpload(null)
+        }}
+        onSubmit={handleConfigSubmit}
+      />
+    </div>
+  )
+}
+
+export default Upload
+
