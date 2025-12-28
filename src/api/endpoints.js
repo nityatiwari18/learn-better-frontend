@@ -28,6 +28,7 @@ export const ENDPOINTS = {
     STORAGE_USAGE: '/v1/content/storage/usage',
     PROCESS: (id) => `/v1/content/${id}/process`,
     PROCESSING_STATUS: (id) => `/v1/content/${id}/processing-status`,
+    DELETE_KEY_CONCEPT: (contentId, conceptId) => `/v1/content/${contentId}/key-concepts/${conceptId}`,
   },
 
   // Quiz

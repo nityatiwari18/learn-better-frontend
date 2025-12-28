@@ -17,6 +17,7 @@ function ContentCard({ content, onDelete }) {
   const [keyConcepts, setKeyConcepts] = useState([])
   const [isExpanded, setIsExpanded] = useState(false)
   const [isPolling, setIsPolling] = useState(false)
+  const [hoveredConceptId, setHoveredConceptId] = useState(null)
   const pollingRef = useRef(null)
 
   // Determine content title
@@ -128,6 +129,31 @@ function ContentCard({ content, onDelete }) {
     }
   }
 
+  // Handle delete key concept
+  const handleDeleteConcept = async (conceptId) => {
+    if (!content.id || !conceptId) return
+    
+    try {
+      // Optimistically remove from UI
+      const updatedConcepts = keyConcepts.filter(concept => concept.id !== conceptId)
+      setKeyConcepts(updatedConcepts)
+
+      // Make API call to delete from database
+      await contentApi.deleteKeyConcept(content.id, conceptId)
+    } catch (err) {
+      console.error('Failed to delete key concept:', err)
+      // Revert optimistic update on error
+      try {
+        const status = await contentApi.getProcessingStatus(content.id)
+        if (status.key_concepts && status.key_concepts.length > 0) {
+          setKeyConcepts(status.key_concepts)
+        }
+      } catch (fetchErr) {
+        console.error('Failed to revert key concepts:', fetchErr)
+      }
+    }
+  }
+
   // Render status badge
   const renderStatusBadge = () => {
     switch (processingStatus) {
@@ -195,8 +221,28 @@ function ContentCard({ content, onDelete }) {
             <div className="content-section">
               <h4 className="section-title">Key Concepts</h4>
               <div className="key-concepts-grid">
-                {keyConcepts.map((concept, index) => (
-                  <div key={index} className="concept-card">
+                {keyConcepts.map((concept) => (
+                  <div 
+                    key={concept.id || concept.concept_name} 
+                    className="concept-card"
+                    onMouseEnter={() => concept.id && setHoveredConceptId(concept.id)}
+                    onMouseLeave={() => setHoveredConceptId(null)}
+                  >
+                    {concept.id && hoveredConceptId === concept.id && (
+                      <button
+                        className="concept-delete-btn"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleDeleteConcept(concept.id)
+                        }}
+                        title="Delete concept"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <polyline points="3 6 5 6 21 6"></polyline>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                      </button>
+                    )}
                     <h5 className="concept-name">{concept.concept_name}</h5>
                     <p className="concept-description">{concept.description}</p>
                   </div>
