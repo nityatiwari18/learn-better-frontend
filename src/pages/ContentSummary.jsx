@@ -12,7 +12,7 @@ const PROCESSING_STATES = {
   FAILED: 'failed'
 }
 
-function ContentSummary({ onLogout }) {
+function ContentSummary() {
   const { contentId } = useParams()
   const location = useLocation()
   const navigate = useNavigate()
@@ -130,13 +130,6 @@ function ContentSummary({ onLogout }) {
     }
   }, [contentId, locationCachedData, locationUrl])
 
-  const handleLogout = () => {
-    storage.clearAuth()
-    if (onLogout) {
-      onLogout()
-    }
-  }
-
   const handleDone = () => {
     navigate('/home')
   }
@@ -217,13 +210,6 @@ function ContentSummary({ onLogout }) {
 
   return (
     <div className="content-summary">
-      <header className="content-summary-header">
-        <div className="content-summary-logo">◈ Learn Better</div>
-        <button className="logout-btn" onClick={handleLogout}>
-          Logout
-        </button>
-      </header>
-
       <main className="content-summary-main">
         <div className={`content-summary-container ${state}`}>
           {/* Processing State */}

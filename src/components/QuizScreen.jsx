@@ -65,7 +65,7 @@ const MOCK_QUIZ_RESPONSE = {
   }
 }
 
-function QuizScreen({ onLogout }) {
+function QuizScreen() {
   const { quizId: routeQuizId } = useParams()
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -558,13 +558,6 @@ function QuizScreen({ onLogout }) {
     }
   }
 
-  const handleLogout = () => {
-    storage.clearAuth()
-    if (onLogout) {
-      onLogout()
-    }
-  }
-
   const handleClose = () => {
     // Check navigationType to handle browser back button correctly
     // If navigationType is 'POP' (browser back), go to home to avoid reloading ContentSummary
@@ -621,12 +614,6 @@ function QuizScreen({ onLogout }) {
 
   return (
     <div className="quiz-screen">
-      <header className="quiz-screen-header">
-        <div className="quiz-screen-logo">◈ Learn Better</div>
-        <button className="logout-btn" onClick={handleLogout}>
-          Logout
-        </button>
-      </header>
       <div className={`quiz-screen-container ${state}`}>
         {/* Loading State */}
         {state === QUIZ_STATES.LOADING && (

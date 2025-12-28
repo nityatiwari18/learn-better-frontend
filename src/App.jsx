@@ -7,6 +7,7 @@ import Upload from './pages/Upload'
 import ContentSummary from './pages/ContentSummary'
 import QuizScreen from './components/QuizScreen'
 import Layout from './components/Layout'
+import MainHomeLayout from './components/MainHomeLayout'
 import AuthModal from './components/AuthModal'
 import { storage } from './utils/storage'
 import './App.css'
@@ -58,12 +59,14 @@ function App() {
     return (
       <>
         <Routes>
-          <Route path="/home" element={<Dashboard onLogout={handleLogout} />} />
-          <Route path="/upload" element={<Upload />} />
-          <Route path="/content/:contentId" element={<ContentSummary onLogout={handleLogout} />} />
-          <Route path="/quiz/:quizId" element={<QuizScreen onLogout={handleLogout} />} />
-          <Route path="/quiz" element={<QuizScreen onLogout={handleLogout} />} />
-          <Route path="/" element={<Navigate to="/home" replace />} />
+          <Route path="/" element={<MainHomeLayout onLogout={handleLogout} />}>
+            <Route path="home" element={<Dashboard />} />
+            <Route path="upload" element={<Upload />} />
+            <Route path="content/:contentId" element={<ContentSummary />} />
+            <Route path="quiz/:quizId" element={<QuizScreen />} />
+            <Route path="quiz" element={<QuizScreen />} />
+            <Route index element={<Navigate to="/home" replace />} />
+          </Route>
         </Routes>
         {showSuccessToast && (
           <div className="logged-in-toast">

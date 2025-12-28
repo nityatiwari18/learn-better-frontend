@@ -5,7 +5,7 @@ import './Layout.css'
 function Layout({ onOpenAuth }) {
   return (
     <div className="layout">
-      <Header />
+      <Header isAuthenticated={false} onOpenAuth={onOpenAuth} />
       <main className="main">
         <Outlet context={{ onOpenAuth }} />
       </main>
