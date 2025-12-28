@@ -201,6 +201,7 @@
   align-items: center;
   justify-content: center;
   font-family: var(--font-body);
+  position: relative;
 }
 
 .concept-card:hover {
@@ -227,6 +228,29 @@
   margin-top: 4px;
   line-height: 1.4;
   text-transform: none !important;
+}
+
+.concept-delete-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 6px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  color: #ef4444;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.concept-delete-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+  transform: scale(1.1);
 }
 
 /* Start Quiz Button */

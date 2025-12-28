@@ -207,6 +207,7 @@
   border-radius: 10px;
   padding: 14px;
   transition: all var(--transition-fast);
+  position: relative;
 }
 
 .concept-card:hover {
@@ -229,6 +230,29 @@
   line-height: 1.5;
   margin: 0;
   text-transform: none !important;
+}
+
+.concept-delete-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 6px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  color: #ef4444;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.concept-delete-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+  transform: scale(1.1);
 }
 
 /* Processing Message */

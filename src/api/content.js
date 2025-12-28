@@ -161,6 +161,7 @@ export const contentApi = {
         // Return cached data in the same format as API response
         return {
           processing_status: 'completed',
+          title: cached.title || '',
           summary: cached.summary ? { summary_text: cached.summary } : null,
           key_concepts: cached.key_concepts || []
         }
@@ -176,6 +177,7 @@ export const contentApi = {
       const existingCache = storage.getContentCache(url, config) || {}
       storage.setContentCache(url, {
         ...existingCache,
+        title: data.title || '',
         summary: data.summary?.summary_text || null,
         key_concepts: data.key_concepts || []
       }, config)
@@ -223,6 +225,17 @@ export const contentApi = {
    */
   async getQuizById(quizId) {
     const response = await apiClient.get(ENDPOINTS.QUIZ.BY_ID(quizId))
+    return response.data
+  },
+
+  /**
+   * Delete a key concept
+   * @param {number} contentId - Content ID
+   * @param {number} conceptId - Key Concept ID
+   * @returns {Promise<Object>} Delete response
+   */
+  async deleteKeyConcept(contentId, conceptId) {
+    const response = await apiClient.delete(ENDPOINTS.CONTENT.DELETE_KEY_CONCEPT(contentId, conceptId))
     return response.data
   },
 }
