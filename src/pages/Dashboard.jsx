@@ -3,6 +3,9 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { storage } from '../utils/storage'
 import { contentApi } from '../api/content'
 import ContentCard from '../components/ContentCard'
+import AddFirstReadingCard from '../components/AddFirstReadingCard'
+import ReadingsStatCard from '../components/ReadingsStatCard'
+import StudySessionsStatCard from '../components/StudySessionsStatCard'
 import './Dashboard.css'
 
 function Dashboard() {
@@ -48,28 +51,10 @@ function Dashboard() {
           <p className="welcome-subtitle">
             {hasContent 
               ? 'Your learning materials are ready. Click on any content to see its summary and key concepts.'
-              : 'This workspace is designed for your structured practice and long-term retention from your readings'
+              : 'This workspace is designed for structured practice and long-term retention from your readings.'
             }
           </p>
         </div>
-
-        <button className="dashboard-upload-btn" onClick={() => navigate('/upload')}>
-          <svg 
-            width="24" 
-            height="24" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2" 
-            strokeLinecap="round" 
-            strokeLinejoin="round"
-          >
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <polyline points="17 8 12 3 7 8" />
-            <line x1="12" y1="3" x2="12" y2="15" />
-          </svg>
-          Upload Content
-        </button>
 
         {/* Content List */}
         {isLoading ? (
@@ -91,9 +76,12 @@ function Dashboard() {
             </div>
           </div>
         ) : (
-          <div className="empty-state">
-            <div className="empty-state-icon">📚</div>
-            <p className="empty-state-text">No content yet. Upload something to get started!</p>
+          <div className="dashboard-cards-container">
+            <AddFirstReadingCard />
+            <div className="dashboard-stats-container">
+              <ReadingsStatCard />
+              <StudySessionsStatCard />
+            </div>
           </div>
         )}
       </main>
