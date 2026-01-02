@@ -2,7 +2,7 @@ import './LearningGarden.css'
 
 function LearningGarden() {
   return (
-    <div className="learning-garden">
+    <div className="container learning-garden">
       <main className="learning-garden-main">
         <div className="learning-garden-header">
           <h1 className="learning-garden-title">Learning Garden</h1>

@@ -41,7 +41,7 @@
 
 .nav {
   display: flex;
-  gap: var(--space-lg);
+  gap: var(--space-md);
 }
 
 .nav-link {

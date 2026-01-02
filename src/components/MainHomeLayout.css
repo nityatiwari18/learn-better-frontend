@@ -6,6 +6,10 @@
 
 .main-home-content {
   flex: 1;
-  padding: 20px 0 var(--space-xl) 0;
+  padding-top: var(--space-xl);
+  padding-bottom: var(--space-xl);
+  padding-left: 24px;
+  padding-right: 24px;
+  /* background-color: gray; */
 }
 
