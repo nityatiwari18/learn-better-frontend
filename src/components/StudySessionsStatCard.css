@@ -1,0 +1,62 @@
+.study-sessions-stat-card {
+  background: var(--color-bg-elevated);
+  border-radius: 16px;
+  padding: var(--space-lg);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-sm);
+  height: 200px;
+  justify-content: center;
+}
+
+.stat-icon {
+  color: var(--color-accent);
+  margin-bottom: var(--space-xs);
+}
+
+.stat-number {
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  line-height: 1;
+  margin: var(--space-xs) 0;
+}
+
+.stat-label {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--color-text);
+  margin-top: var(--space-xs);
+}
+
+.stat-subtitle {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin-top: var(--space-xs);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .study-sessions-stat-card {
+    min-height: 180px;
+    padding: var(--space-md);
+  }
+
+  .stat-number {
+    font-size: 2rem;
+  }
+
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .stat-icon svg {
+    width: 40px;
+    height: 40px;
+  }
+}
+
