@@ -1,0 +1,73 @@
+.learning-garden {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+}
+
+.learning-garden-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-xl);
+  gap: var(--space-xl);
+}
+
+.learning-garden-header {
+  text-align: center;
+  max-width: 600px;
+}
+
+.learning-garden-title {
+  font-size: 3rem;
+  font-weight: 300;
+  color: var(--color-text);
+  margin-bottom: var(--space-md);
+  line-height: 1.2;
+}
+
+.learning-garden-subtitle {
+  font-size: 1.125rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.learning-garden-content {
+  width: 100%;
+  max-width: 800px;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl) var(--space-lg);
+  gap: var(--space-md);
+  background: var(--color-bg-elevated);
+  border: 1px dashed var(--color-border);
+  border-radius: 16px;
+  max-width: 400px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.empty-state-icon {
+  font-size: 3rem;
+}
+
+.empty-state-text {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .learning-garden-title {
+    font-size: 2rem;
+  }
+}
+

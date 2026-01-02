@@ -4,6 +4,9 @@ import Welcome from './pages/Welcome'
 import About from './pages/About'
 import Dashboard from './pages/Dashboard'
 import Upload from './pages/Upload'
+import Library from './pages/Library'
+import LearningGarden from './pages/LearningGarden'
+import Stats from './pages/Stats'
 import ContentSummary from './pages/ContentSummary'
 import QuizScreen from './components/QuizScreen'
 import Layout from './components/Layout'
@@ -62,6 +65,9 @@ function App() {
           <Route path="/" element={<MainHomeLayout onLogout={handleLogout} />}>
             <Route path="home" element={<Dashboard />} />
             <Route path="upload" element={<Upload />} />
+            <Route path="library" element={<Library />} />
+            <Route path="learning-garden" element={<LearningGarden />} />
+            <Route path="stats" element={<Stats />} />
             <Route path="content/:contentId" element={<ContentSummary />} />
             <Route path="quiz/:quizId" element={<QuizScreen />} />
             <Route path="quiz" element={<QuizScreen />} />
