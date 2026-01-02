@@ -42,7 +42,7 @@ function Dashboard() {
   const hasContent = contentList.length > 0
 
   return (
-    <div className="container dashboard">
+    <div className="child-container dashboard">
       <main className="dashboard-main">
         <div className="welcome-section">
           <h1 className="welcome-title">

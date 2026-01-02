@@ -158,9 +158,10 @@
 .dashboard-cards-container {
   display: flex;
   gap: var(--space-lg);
-  align-items: flex-start;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   width: 100%;
-  max-width: 1000px;
 }
 
 .dashboard-stats-container {
