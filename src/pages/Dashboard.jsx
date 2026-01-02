@@ -39,16 +39,16 @@ function Dashboard() {
   const hasContent = contentList.length > 0
 
   return (
-    <div className="dashboard">
+    <div className="container dashboard">
       <main className="dashboard-main">
         <div className="welcome-section">
           <h1 className="welcome-title">
-            Welcome, <span className="user-name">{firstName}</span>
+            Hello, <span className="user-name">{firstName}</span>
           </h1>
           <p className="welcome-subtitle">
             {hasContent 
               ? 'Your learning materials are ready. Click on any content to see its summary and key concepts.'
-              : 'Ready to enhance your learning? Upload your content to get started.'
+              : 'This workspace is designed for your structured practice and long-term retention from your readings'
             }
           </p>
         </div>

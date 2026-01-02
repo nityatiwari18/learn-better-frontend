@@ -10,10 +10,8 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: var(--space-lg) var(--space-xl) var(--space-xl) var(--space-xl);
   max-width: 800px;
   width: 100%;
-  margin: 0 auto;
 }
 
 .content-summary-container {

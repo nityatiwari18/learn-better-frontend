@@ -2,7 +2,7 @@ import './Stats.css'
 
 function Stats() {
   return (
-    <div className="stats">
+    <div className="container stats">
       <main className="stats-main">
         <div className="stats-header">
           <h1 className="stats-title">Stats</h1>

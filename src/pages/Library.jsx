@@ -2,7 +2,7 @@ import './Library.css'
 
 function Library() {
   return (
-    <div className="library">
+    <div className="container library">
       <main className="library-main">
         <div className="library-header">
           <h1 className="library-title">Library</h1>
