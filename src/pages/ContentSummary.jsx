@@ -24,7 +24,6 @@ function ContentSummary() {
   const [summary, setSummary] = useState(locationCachedData?.summary || null)
   const [keyConcepts, setKeyConcepts] = useState(locationCachedData?.key_concepts || [])
   const [error, setError] = useState('')
-  const [hoveredConceptId, setHoveredConceptId] = useState(null)
   const pollingRef = useRef(null)
   const progressRef = useRef(null)
 
@@ -130,6 +129,11 @@ function ContentSummary() {
     }
   }, [contentId, locationCachedData, locationUrl])
 
+  // Scroll to top on mount
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [contentId])
+
   const handleDone = () => {
     navigate('/home')
   }
@@ -209,7 +213,7 @@ function ContentSummary() {
   }
 
   return (
-    <div className="content-summary">
+    <div className="child-container content-summary">
       <main className="content-summary-main">
         <div className={`content-summary-container ${state}`}>
           {/* Processing State */}
@@ -229,46 +233,58 @@ function ContentSummary() {
                 <p className="completed-subtitle">Review the summary and key concepts to track</p>
               </div>
 
-              {summary && (
-                <div className="summary-section">
-                  <h3 className="section-title">Summary</h3>
-                  <p className="summary-text">{summary}</p>
-                </div>
-              )}
+              {(summary || keyConcepts.length > 0) && (
+                <div className="content-results-container">
+                  <p className="title-content-text">We have analysed your source. Review how it's organized for long term retention</p>
+                  <h2 className="section-title">Learning Track</h2>
+                  <p className="subtitle-text-1">Your retention is tracked by learning track, and you can personalised this for your content</p>
+                  {summary && (
+                    <div className="summary-section">
+                      <h3 className="section-title">Summary</h3>
+                      <p className="summary-text">{summary}</p>
+                    </div>
+                  )}
 
-              {keyConcepts.length > 0 && (
-                <div className="concepts-section">
-                  <h3 className="section-title">Key Concepts</h3>
-                  <div className="concepts-grid">
-                    {keyConcepts.map((concept) => (
-                      <div 
-                        key={concept.id || concept.concept_name} 
-                        className="concept-card"
-                        onMouseEnter={() => concept.id && setHoveredConceptId(concept.id)}
-                        onMouseLeave={() => setHoveredConceptId(null)}
-                      >
-                        {concept.id && hoveredConceptId === concept.id && (
-                          <button
-                            className="concept-delete-btn"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleDeleteConcept(concept.id)
-                            }}
-                            title="Delete concept"
+                  {keyConcepts.length > 0 && summary && (
+                    <hr className="section-divider" />
+                  )}
+
+                  {keyConcepts.length > 0 && (
+                    <div className="concepts-section">
+                      <h3 className="section-title">Key Concepts</h3>
+                      <p className="subtitle-text-1">Below key concepts will be used to guide your long-term retention practice.</p>
+                      <div className="concepts-grid">
+                        {keyConcepts.map((concept) => (
+                          <div 
+                            key={concept.id || concept.concept_name} 
+                            className="concept-card"
                           >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <polyline points="3 6 5 6 21 6"></polyline>
-                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                            </svg>
-                          </button>
-                        )}
-                        <span className="concept-name">{concept.concept_name}</span>
-                        {concept.subtitle && (
-                          <span className="concept-subtitle">{concept.subtitle}</span>
-                        )}
+                            <div className="concept-content">
+                              <span className="concept-name">{concept.concept_name}</span>
+                              {concept.subtitle && (
+                                <span className="concept-subtitle">{concept.subtitle}</span>
+                              )}
+                            </div>
+                            {concept.id && (
+                              <button
+                                className="concept-delete-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleDeleteConcept(concept.id)
+                                }}
+                                title="Delete concept"
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <polyline points="3 6 5 6 21 6"></polyline>
+                                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                              </button>
+                            )}
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  )}
                 </div>
               )}
 
