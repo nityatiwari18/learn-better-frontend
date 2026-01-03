@@ -24,8 +24,11 @@ function ContentSummary() {
   const [summary, setSummary] = useState(locationCachedData?.summary || null)
   const [keyConcepts, setKeyConcepts] = useState(locationCachedData?.key_concepts || [])
   const [error, setError] = useState('')
+  const [selectedTrack, setSelectedTrack] = useState(null)
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const pollingRef = useRef(null)
   const progressRef = useRef(null)
+  const dropdownRef = useRef(null)
 
   // Simulated progress animation
   useEffect(() => {
@@ -134,6 +137,23 @@ function ContentSummary() {
     window.scrollTo(0, 0)
   }, [contentId])
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false)
+      }
+    }
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isDropdownOpen])
+
   const handleDone = () => {
     navigate('/home')
   }
@@ -212,6 +232,23 @@ function ContentSummary() {
     })
   }
 
+  const learningTracks = [
+    'Machine Learning',
+    'React Development',
+    'System Design',
+    'UI/UX Design',
+    'Product Management'
+  ]
+
+  const handleDropdownToggle = () => {
+    setIsDropdownOpen(!isDropdownOpen)
+  }
+
+  const handleTrackSelect = (track) => {
+    setSelectedTrack(track)
+    setIsDropdownOpen(false)
+  }
+
   return (
     <div className="child-container content-summary">
       <main className="content-summary-main">
@@ -237,7 +274,47 @@ function ContentSummary() {
                 <div className="content-results-container">
                   <p className="title-content-text">We have analysed your source. Review how it's organized for long term retention</p>
                   <h2 className="section-title">Learning Track</h2>
-                  <p className="subtitle-text-1">Your retention is tracked by learning track, and you can personalised this for your content</p>
+                  <p className="subtitle-text-2">Your retention is tracked by learning track, and you can personalised this for your content</p>
+                  
+                  <div className="learning-track-dropdown-container" ref={dropdownRef}>
+                    <button
+                      type="button"
+                      className={`learning-track-dropdown ${isDropdownOpen ? 'open' : ''}`}
+                      onClick={handleDropdownToggle}
+                    >
+                      <span className={`dropdown-selected-text ${!selectedTrack ? 'placeholder' : ''}`}>
+                        {selectedTrack || 'Select a learning track'}
+                      </span>
+                      <svg
+                        className={`dropdown-chevron ${isDropdownOpen ? 'open' : ''}`}
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                      </svg>
+                    </button>
+                    {isDropdownOpen && (
+                      <div className="learning-track-dropdown-menu">
+                        {learningTracks.map((track) => (
+                          <button
+                            key={track}
+                            type="button"
+                            className={`dropdown-menu-item ${selectedTrack === track ? 'selected' : ''}`}
+                            onClick={() => handleTrackSelect(track)}
+                          >
+                            {track}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
                   {summary && (
                     <div className="summary-section">
                       <h3 className="section-title">Summary</h3>
