@@ -224,30 +224,36 @@ function Upload() {
   )
 
   return (
-    <div className="upload-page">
+    <div className="child-container upload-page">
       {showErrorPopup && (
         <ErrorPopup message={error} onClose={handleErrorPopupClose} />
       )}
 
       <div className="upload-header">
-        <h2 className="upload-title">Add New Content</h2>
-        <p className="upload-subtitle">Choose how you want to add content</p>
+        <h2 className="upload-title">Add a Reading</h2>
+        <p className="upload-subtitle">Choose how you want to add content - upload content, paste URL or write text</p>
       </div>
 
-      <div className="upload-tabs">
-        {tabs.map(tab => (
-          <button
-            key={tab.id}
-            className={`upload-tab ${activeTab === tab.id ? 'active' : ''}`}
-            onClick={() => setActiveTab(tab.id)}
-          >
-            <span className="tab-icon">{tab.icon}</span>
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <div className="upload-container">
+        <div className="upload-container-header">
+          <h3 className="upload-container-title">Choose Reading Source</h3>
+          <p className="upload-container-subtitle">Select how you'd like to add content</p>
+        </div>
 
-      <form onSubmit={handleSubmit} className="upload-content">
+        <div className="upload-tabs">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              className={`upload-tab ${activeTab === tab.id ? 'active' : ''}`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              <span className="tab-icon">{tab.icon}</span>
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        <form onSubmit={handleSubmit} className="upload-content">
         <ContentFrame {...contentConfig[activeTab]}>
           {activeTab === 'url' && (
             <input
@@ -300,6 +306,7 @@ function Upload() {
           {isLoading ? 'Uploading...' : `↑ Upload ${activeTab === 'url' ? 'Article' : activeTab === 'pdf' ? 'PDF' : 'Text'}`}
         </button>
       </form>
+      </div>
     </div>
   )
 }
