@@ -14,8 +14,8 @@
 }
 
 .upload-title {
-  font-size: 3rem;
-  font-weight: 600;
+  font-size: 2.5rem;
+  font-weight: 550;
   font-family: var(--font-body);
   color: var(--color-accent);
   color: var(--color-accent);
@@ -44,8 +44,8 @@
 }
 
 .upload-container-title {
-  font-size: 2rem;
-  font-weight: 600;
+  font-size: 1.5rem;
+  font-weight: 550;
   font-family: var(--font-body);
   color: var(--color-accent);
   margin-bottom: var(--space-sm);
