@@ -11,7 +11,7 @@ function AddFirstReadingCard() {
   return (
     <div className="add-first-reading-card">
       <div className="card-header">
-        <h2 className="card-title">Add your first reading.</h2>
+        <h2 className="card-title">Add your first reading</h2>
         <div className="card-icon">
           <svg 
             width="64" 

@@ -22,7 +22,7 @@
 
 .welcome-title {
   font-size: 3rem;
-  font-weight: 300;
+  font-weight: 500;
   font-family: var(--font-body);
   color: var(--color-accent);
   margin-bottom: var(--space-md);

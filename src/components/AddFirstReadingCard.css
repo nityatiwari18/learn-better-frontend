@@ -19,8 +19,8 @@
 }
 
 .card-title {
-  font-size: 1.5rem;
-  font-weight: 600;
+  font-size: 2.5rem;
+  font-weight: 800;
   color: var(--color-accent);
   margin: 0;
   flex: 1;
@@ -33,7 +33,7 @@
 }
 
 .card-description {
-  font-size: 1rem;
+  font-size: 1.2rem;
   color: var(--color-text);
   line-height: 1.6;
   margin: 0;
@@ -42,7 +42,7 @@
 
 .card-description strong {
   font-weight: 600;
-  color: var(--color-text);
+  color: var(--color-accent);
 }
 
 .add-reading-btn {
@@ -50,7 +50,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 12px 24px;
+  padding: 18px 48px;
   background: var(--color-accent);
   color: #ffffff;
   font-size: 1rem;

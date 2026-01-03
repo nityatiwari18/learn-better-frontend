@@ -6,8 +6,8 @@
 
 .main-home-content {
   flex: 1;
-  padding-top: var(--space-xl);
-  padding-bottom: var(--space-xl);
+  padding-top: var(--space-lg);
+  padding-bottom: var(--space-lg);
   padding-left: 24px;
   padding-right: 24px;
   /* background-color: gray; */
