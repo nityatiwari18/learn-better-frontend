@@ -26,9 +26,19 @@ function ContentSummary() {
   const [error, setError] = useState('')
   const [selectedTrack, setSelectedTrack] = useState(null)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [isAddingNewTrack, setIsAddingNewTrack] = useState(false)
+  const [newTrackName, setNewTrackName] = useState('')
+  const [learningTracks, setLearningTracks] = useState([
+    'Machine Learning',
+    'React Development',
+    'System Design',
+    'UI/UX Design',
+    'Product Management'
+  ])
   const pollingRef = useRef(null)
   const progressRef = useRef(null)
   const dropdownRef = useRef(null)
+  const inputRef = useRef(null)
 
   // Simulated progress animation
   useEffect(() => {
@@ -232,13 +242,12 @@ function ContentSummary() {
     })
   }
 
-  const learningTracks = [
-    'Machine Learning',
-    'React Development',
-    'System Design',
-    'UI/UX Design',
-    'Product Management'
-  ]
+  // Focus input when entering add mode
+  useEffect(() => {
+    if (isAddingNewTrack && inputRef.current) {
+      inputRef.current.focus()
+    }
+  }, [isAddingNewTrack])
 
   const handleDropdownToggle = () => {
     setIsDropdownOpen(!isDropdownOpen)
@@ -247,6 +256,40 @@ function ContentSummary() {
   const handleTrackSelect = (track) => {
     setSelectedTrack(track)
     setIsDropdownOpen(false)
+  }
+
+  const handleAddNewTrack = () => {
+    setIsAddingNewTrack(true)
+    setIsDropdownOpen(false)
+    setNewTrackName('')
+  }
+
+  const handleSaveNewTrack = () => {
+    const trimmedName = newTrackName.trim()
+    if (trimmedName) {
+      // Check if track already exists
+      if (!learningTracks.includes(trimmedName)) {
+        setLearningTracks([...learningTracks, trimmedName])
+      }
+      setSelectedTrack(trimmedName)
+      setIsAddingNewTrack(false)
+      setNewTrackName('')
+    }
+  }
+
+  const handleCancelNewTrack = () => {
+    setIsAddingNewTrack(false)
+    setNewTrackName('')
+  }
+
+  const handleInputKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleSaveNewTrack()
+    } else if (e.key === 'Escape') {
+      e.preventDefault()
+      handleCancelNewTrack()
+    }
   }
 
   return (
@@ -277,41 +320,87 @@ function ContentSummary() {
                   <p className="subtitle-text-2">Your retention is tracked by learning track, and you can personalised this for your content</p>
                   
                   <div className="learning-track-dropdown-container" ref={dropdownRef}>
-                    <button
-                      type="button"
-                      className={`learning-track-dropdown ${isDropdownOpen ? 'open' : ''}`}
-                      onClick={handleDropdownToggle}
-                    >
-                      <span className={`dropdown-selected-text ${!selectedTrack ? 'placeholder' : ''}`}>
-                        {selectedTrack || 'Select a learning track'}
-                      </span>
-                      <svg
-                        className={`dropdown-chevron ${isDropdownOpen ? 'open' : ''}`}
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <polyline points="6 9 12 15 18 9"></polyline>
-                      </svg>
-                    </button>
-                    {isDropdownOpen && (
-                      <div className="learning-track-dropdown-menu">
-                        {learningTracks.map((track) => (
+                    {isAddingNewTrack ? (
+                      <div className="learning-track-input-container">
+                        <input
+                          ref={inputRef}
+                          type="text"
+                          className="learning-track-input"
+                          placeholder="e.g., Machine Learning, Product Management"
+                          value={newTrackName}
+                          onChange={(e) => setNewTrackName(e.target.value)}
+                          onKeyDown={handleInputKeyDown}
+                        />
+                        <div className="learning-track-action-buttons">
                           <button
-                            key={track}
                             type="button"
-                            className={`dropdown-menu-item ${selectedTrack === track ? 'selected' : ''}`}
-                            onClick={() => handleTrackSelect(track)}
+                            className="learning-track-action-btn save-btn"
+                            onClick={handleSaveNewTrack}
+                            title="Save"
                           >
-                            {track}
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
                           </button>
-                        ))}
+                          <button
+                            type="button"
+                            className="learning-track-action-btn cancel-btn"
+                            onClick={handleCancelNewTrack}
+                            title="Cancel"
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <line x1="18" y1="6" x2="6" y2="18"></line>
+                              <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                          </button>
+                        </div>
                       </div>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          className={`learning-track-dropdown ${isDropdownOpen ? 'open' : ''}`}
+                          onClick={handleDropdownToggle}
+                        >
+                          <span className={`dropdown-selected-text ${!selectedTrack ? 'placeholder' : ''}`}>
+                            {selectedTrack || 'Select a learning track'}
+                          </span>
+                          <svg
+                            className={`dropdown-chevron ${isDropdownOpen ? 'open' : ''}`}
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                          </svg>
+                        </button>
+                        {isDropdownOpen && (
+                          <div className="learning-track-dropdown-menu">
+                            {learningTracks.map((track) => (
+                              <button
+                                key={track}
+                                type="button"
+                                className={`dropdown-menu-item ${selectedTrack === track ? 'selected' : ''}`}
+                                onClick={() => handleTrackSelect(track)}
+                              >
+                                {track}
+                              </button>
+                            ))}
+                            <button
+                              type="button"
+                              className="dropdown-menu-item add-new-track-item"
+                              onClick={handleAddNewTrack}
+                            >
+                              + Add New Learning Track
+                            </button>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
 
