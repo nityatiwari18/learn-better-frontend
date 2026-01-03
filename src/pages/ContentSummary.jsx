@@ -24,9 +24,11 @@ function ContentSummary() {
   const [summary, setSummary] = useState(locationCachedData?.summary || null)
   const [keyConcepts, setKeyConcepts] = useState(locationCachedData?.key_concepts || [])
   const [error, setError] = useState('')
-  const [hoveredConceptId, setHoveredConceptId] = useState(null)
+  const [selectedTrack, setSelectedTrack] = useState(null)
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const pollingRef = useRef(null)
   const progressRef = useRef(null)
+  const dropdownRef = useRef(null)
 
   // Simulated progress animation
   useEffect(() => {
@@ -130,6 +132,28 @@ function ContentSummary() {
     }
   }, [contentId, locationCachedData, locationUrl])
 
+  // Scroll to top on mount
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [contentId])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false)
+      }
+    }
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isDropdownOpen])
+
   const handleDone = () => {
     navigate('/home')
   }
@@ -208,8 +232,25 @@ function ContentSummary() {
     })
   }
 
+  const learningTracks = [
+    'Machine Learning',
+    'React Development',
+    'System Design',
+    'UI/UX Design',
+    'Product Management'
+  ]
+
+  const handleDropdownToggle = () => {
+    setIsDropdownOpen(!isDropdownOpen)
+  }
+
+  const handleTrackSelect = (track) => {
+    setSelectedTrack(track)
+    setIsDropdownOpen(false)
+  }
+
   return (
-    <div className="content-summary">
+    <div className="child-container content-summary">
       <main className="content-summary-main">
         <div className={`content-summary-container ${state}`}>
           {/* Processing State */}
@@ -229,46 +270,98 @@ function ContentSummary() {
                 <p className="completed-subtitle">Review the summary and key concepts to track</p>
               </div>
 
-              {summary && (
-                <div className="summary-section">
-                  <h3 className="section-title">Summary</h3>
-                  <p className="summary-text">{summary}</p>
-                </div>
-              )}
-
-              {keyConcepts.length > 0 && (
-                <div className="concepts-section">
-                  <h3 className="section-title">Key Concepts</h3>
-                  <div className="concepts-grid">
-                    {keyConcepts.map((concept) => (
-                      <div 
-                        key={concept.id || concept.concept_name} 
-                        className="concept-card"
-                        onMouseEnter={() => concept.id && setHoveredConceptId(concept.id)}
-                        onMouseLeave={() => setHoveredConceptId(null)}
+              {(summary || keyConcepts.length > 0) && (
+                <div className="content-results-container">
+                  <p className="title-content-text">We have analysed your source. Review how it's organized for long term retention</p>
+                  <h2 className="section-title">Learning Track</h2>
+                  <p className="subtitle-text-2">Your retention is tracked by learning track, and you can personalised this for your content</p>
+                  
+                  <div className="learning-track-dropdown-container" ref={dropdownRef}>
+                    <button
+                      type="button"
+                      className={`learning-track-dropdown ${isDropdownOpen ? 'open' : ''}`}
+                      onClick={handleDropdownToggle}
+                    >
+                      <span className={`dropdown-selected-text ${!selectedTrack ? 'placeholder' : ''}`}>
+                        {selectedTrack || 'Select a learning track'}
+                      </span>
+                      <svg
+                        className={`dropdown-chevron ${isDropdownOpen ? 'open' : ''}`}
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                       >
-                        {concept.id && hoveredConceptId === concept.id && (
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                      </svg>
+                    </button>
+                    {isDropdownOpen && (
+                      <div className="learning-track-dropdown-menu">
+                        {learningTracks.map((track) => (
                           <button
-                            className="concept-delete-btn"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleDeleteConcept(concept.id)
-                            }}
-                            title="Delete concept"
+                            key={track}
+                            type="button"
+                            className={`dropdown-menu-item ${selectedTrack === track ? 'selected' : ''}`}
+                            onClick={() => handleTrackSelect(track)}
                           >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <polyline points="3 6 5 6 21 6"></polyline>
-                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                            </svg>
+                            {track}
                           </button>
-                        )}
-                        <span className="concept-name">{concept.concept_name}</span>
-                        {concept.subtitle && (
-                          <span className="concept-subtitle">{concept.subtitle}</span>
-                        )}
+                        ))}
                       </div>
-                    ))}
+                    )}
                   </div>
+
+                  {summary && (
+                    <div className="summary-section">
+                      <h3 className="section-title">Summary</h3>
+                      <p className="summary-text">{summary}</p>
+                    </div>
+                  )}
+
+                  {keyConcepts.length > 0 && summary && (
+                    <hr className="section-divider" />
+                  )}
+
+                  {keyConcepts.length > 0 && (
+                    <div className="concepts-section">
+                      <h3 className="section-title">Key Concepts</h3>
+                      <p className="subtitle-text-1">Below key concepts will be used to guide your long-term retention practice.</p>
+                      <div className="concepts-grid">
+                        {keyConcepts.map((concept) => (
+                          <div 
+                            key={concept.id || concept.concept_name} 
+                            className="concept-card"
+                          >
+                            <div className="concept-content">
+                              <span className="concept-name">{concept.concept_name}</span>
+                              {concept.subtitle && (
+                                <span className="concept-subtitle">{concept.subtitle}</span>
+                              )}
+                            </div>
+                            {concept.id && (
+                              <button
+                                className="concept-delete-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleDeleteConcept(concept.id)
+                                }}
+                                title="Delete concept"
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <polyline points="3 6 5 6 21 6"></polyline>
+                                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
